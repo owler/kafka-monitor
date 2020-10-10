@@ -1,7 +1,7 @@
 package event
 
 import java.time.Duration
-import java.util
+import java.{lang, util}
 import java.util.Properties
 
 import event.utils.CharmConfigObject
@@ -13,9 +13,13 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer
 
 import scala.collection.mutable
 
+case class TopicMetaData(topic: String, metadata: Map[Int, (Long, Long)])
+
 object Kafka {
   val conf = CharmConfigObject
   val BOOTSTRAP_SERVERS = conf.getString("kafka.brokers")
+  var repo: Map[String, TopicMetaData] = Map[String, TopicMetaData]()
+  refreshRepo
 
   private def createConsumer(props: Properties = new Properties() ) = {
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS)
@@ -26,11 +30,22 @@ object Kafka {
     new KafkaConsumer[Array[Byte], Array[Byte]](props)
   }
 
-  def getTopics: mutable.Map[String, util.List[PartitionInfo]] = {
+  def refreshRepo = {
     val consumer = createConsumer()
     val list = consumer.listTopics()
+    repo ++ list.asScala.map(t => TopicMetaData(t._1,
+      getTopicInfo(t._2.asScala.map(pi => new TopicPartition(t._1, pi.partition())).toList, consumer)))
     consumer.close()
-    list.asScala
+  }
+
+  def getTopics: List[String] = {
+    repo.keys.toList
+  }
+
+  def getTopicInfo(tp: List[TopicPartition], consumer: KafkaConsumer[Array[Byte], Array[Byte]] = createConsumer()): Map[Int, (Long, Long)] = {
+    val startOffsets = consumer.beginningOffsets(tp.asJava).asScala
+    val endOffsets = consumer.endOffsets(tp.asJava).asScala
+    startOffsets.map(x => x._1.partition() -> (x._2.toLong, endOffsets(x._1).toLong)).toMap
   }
 
   def getMessage(topic: String, partition: Int, offset: Long): Array[Byte] = {
