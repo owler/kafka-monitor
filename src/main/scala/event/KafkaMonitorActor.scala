@@ -8,8 +8,8 @@ class KafkaMonitorActor extends Actor with ActorLogging {
   override def receive: Receive = {
     case msg: CamelMessage =>
       sender ! (msg.body match {
-        case body: ListTopics => "received %s" format body.callback
-        case body: Message => "received %s" format body.topicName
+        case msg: ListTopics => Kafka.getTopics.keys
+        case msg: Message => Kafka.getMessage(msg.topicName, msg.partition.toInt, msg.offset.toLong)
       })
   }
 }
