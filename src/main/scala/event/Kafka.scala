@@ -4,16 +4,15 @@ import java.util
 import java.util.Properties
 
 import org.apache.kafka.clients.consumer._
-import java.util.Collections
+import collection.JavaConverters._
 
-import org.apache.kafka.common.PartitionInfo
+import org.apache.kafka.common.{PartitionInfo, TopicPartition}
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 
 class Kafka {
 
-  private def createConsumer() = {
+  private def createConsumer(props: Properties = new Properties() ) = {
     val BOOTSTRAP_SERVERS = ""
-    val props = new Properties()
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS)
     //props.put(ConsumerConfig.GROUP_ID_CONFIG, null)
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
@@ -27,5 +26,12 @@ class Kafka {
     val list = consumer.listTopics()
     consumer.close()
     list
+  }
+
+  def getMessage(topic: String, partition: Int, offset: Long) = {
+    val consumer = createConsumer()
+    val tp = new TopicPartition(topic, partition)
+    consumer.assign(List(tp).asJava)
+    consumer.seek(tp, offset)
   }
 }
