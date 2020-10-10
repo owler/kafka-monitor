@@ -14,16 +14,18 @@ class KafkaMonitorActor extends Actor with ActorLogging {
     override def dateFormatter = new SimpleDateFormat(dataformat)
   }
 
+  case class Topics(topics: List[TopicMetaData])
+  case class KMessage(message: Array[Byte])
   override def receive: Receive = {
     case msg: CamelMessage =>
       sender ! (msg.body match {
         case ListTopics(callback) => callback match {
-          case null => write(Kafka.getTopics)
-          case _ => new CamelMessage("/**/" + callback + "(" + write(Kafka.getTopics) + ")", Map("content-type"->"application/x-javascript"))
+          case null => write(Topics(Kafka.getTopics))
+          case _ => new CamelMessage("/**/" + callback + "(" + write(Topics(Kafka.getTopics)) + ")", Map("content-type"->"application/x-javascript"))
         }
         case Message(topicName, partition, offset, callback) => callback match {
-          case null => Kafka.getMessage(topicName, partition.toInt, offset.toLong)
-          case _ => new CamelMessage("/**/" + callback + "(" + write(Kafka.getMessage(topicName, partition.toInt, offset.toLong)) + ")", Map("content-type"->"application/x-javascript"))
+          case null => write(KMessage(Kafka.getMessage(topicName, partition.toInt, offset.toLong)))
+          case _ => new CamelMessage("/**/" + callback + "(" + write(KMessage(Kafka.getMessage(topicName, partition.toInt, offset.toLong))) + ")", Map("content-type"->"application/x-javascript"))
         }
       })
   }

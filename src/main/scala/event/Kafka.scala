@@ -40,8 +40,8 @@ object Kafka {
     consumer.close()
   }
 
-  def getTopics: List[String] = {
-    repo.values.toList.sortBy(t => t.topic).map(_.topic)
+  def getTopics: List[TopicMetaData] = {
+    repo.values.toList.sortBy(t => t.topic)
   }
 
   implicit class ToSortedMap[A,B](tuples: TraversableOnce[(A, B)])
