@@ -1,7 +1,6 @@
 package event
 
 import java.util.Date
-
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.camel.{CamelExtension, _}
 import akka.routing.FromConfig
@@ -21,11 +20,12 @@ object KafkaMonitor {
         .get("/list").to("direct:listTopics")
         .get("/{id}/partition/{partition}/offset/{offset}").to("direct:showMessage")
 
-      from("direct:listTopics").setBody(constant(ListTopics(null))).to(monitor)
+      from("direct:listTopics").process((exchange: Exchange) =>
+        exchange.getIn.setBody(ListTopics(exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
       from("direct:showMessage").process((exchange: Exchange) =>
         exchange.getIn.setBody(Message(exchange.getIn.getHeader("id", classOf[String]),
           exchange.getIn.getHeader("partition", classOf[String]),
-          exchange.getIn.getHeader("offset", classOf[String]), null))).to(monitor)
+          exchange.getIn.getHeader("offset", classOf[String]), exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
     }
   }
 

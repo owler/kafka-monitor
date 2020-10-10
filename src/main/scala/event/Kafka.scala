@@ -1,19 +1,17 @@
 package event
 
 import java.time.Duration
-import java.{lang, util}
 import java.util.Properties
-
 import event.utils.CharmConfigObject
 import org.apache.kafka.clients.consumer._
-
 import collection.JavaConverters._
-import org.apache.kafka.common.{PartitionInfo, TopicPartition}
+import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 
 import scala.collection.mutable
 
-case class TopicMetaData(topic: String, metadata: Map[Int, (Long, Long)])
+
+case class TopicMetaData(topic: String, metadata: mutable.SortedMap[Int, (Long, Long)])
 
 object Kafka {
   val conf = CharmConfigObject
@@ -32,21 +30,32 @@ object Kafka {
 
   def refreshRepo = {
     val consumer = createConsumer()
-    val list = consumer.listTopics()
-    repo ++ list.asScala.map(t => TopicMetaData(t._1,
-      getTopicInfo(t._2.asScala.map(pi => new TopicPartition(t._1, pi.partition())).toList, consumer)))
+    val list = consumer.listTopics().asScala
+    println(list)
+
+    val tps: List[TopicPartition] = list.flatMap(t => t._2.asScala.map(partitionInfo => new TopicPartition(t._1, partitionInfo.partition()))).toList
+    println(tps)
+    repo ++= getTopicInfo(tps)
+    println(repo)
     consumer.close()
   }
 
   def getTopics: List[String] = {
-    repo.keys.toList
+    repo.values.toList.sortBy(t => t.topic).map(_.topic)
   }
 
-  def getTopicInfo(tp: List[TopicPartition], consumer: KafkaConsumer[Array[Byte], Array[Byte]] = createConsumer()): Map[Int, (Long, Long)] = {
+  implicit class ToSortedMap[A,B](tuples: TraversableOnce[(A, B)])
+                                 (implicit ordering: Ordering[A]) {
+    def toSortedMap =
+      mutable.SortedMap(tuples.toSeq: _*)
+  }
+
+  def getTopicInfo(tp: List[TopicPartition], consumer: KafkaConsumer[Array[Byte], Array[Byte]] = createConsumer()): Map[String, TopicMetaData] = {
     val startOffsets = consumer.beginningOffsets(tp.asJava).asScala
     val endOffsets = consumer.endOffsets(tp.asJava).asScala
-    startOffsets.map(x => x._1.partition() -> (x._2.toLong, endOffsets(x._1).toLong)).toMap
+    startOffsets.groupBy(_._1.topic()).map(x => x._1 -> TopicMetaData(x._1, x._2.map(y => y._1.partition() -> (y._2.toLong, endOffsets(y._1).toLong)).toSortedMap))
   }
+
 
   def getMessage(topic: String, partition: Int, offset: Long): Array[Byte] = {
     val consumer = createConsumer()
