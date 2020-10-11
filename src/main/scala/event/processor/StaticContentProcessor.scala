@@ -17,7 +17,7 @@ class StaticContentProcessor extends Processor {
     var relativepath = in.getHeader(Exchange.HTTP_PATH, classOf[String])
     val requestPath = in.getHeader("CamelServletContextPath", classOf[String]) //CamelServletContextPath
     println("relativepath: " + relativepath)
-    if (relativepath.isEmpty || relativepath == "/") relativepath = "index.html"
+    if (relativepath.isEmpty || relativepath == "/") relativepath = "src/web/index.html"
 
     val formattedPath = String.format("%s%s", requestPath, relativepath)
     println(formattedPath)
