@@ -14,23 +14,25 @@ import org.apache.camel.model.rest.RestBindingMode
 
 
 object KafkaMonitor {
- val staticProcessor = new StaticContentProcessor()
+  val staticProcessor = new StaticContentProcessor()
 
   class CustomRouteBuilder(system: ActorSystem, monitor: ActorRef) extends RouteBuilder {
     override def configure(): Unit = {
       restConfiguration.component("jetty").host("localhost").port(8877).bindingMode(RestBindingMode.auto)
       rest("/topic/")
         .get("/list").to("direct:listTopics")
-        .get("/details?filter={id}").to("direct:topicDetails")
+        .get("/details?filter[filters][0][value]={id}").to("direct:topicDetails")
         .get("/{id}/partition/{partition}/offset/{offset}").to("direct:showMessage")
 
-      from("jetty:http://0.0.0.0:8080/?matchOnUriPrefix=true").process(staticProcessor)
+      from("jetty:http://0.0.0.0:8081/?matchOnUriPrefix=true").process(staticProcessor)
       from("direct:listTopics").process((exchange: Exchange) =>
         exchange.getIn.setBody(ListTopics(exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
 
-      from("direct:topicDetails").process((exchange: Exchange) =>
-        exchange.getIn.setBody(TopicDetails(exchange.getIn.getHeader("id", classOf[String]).split("eq")(1),
-          exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
+      from("direct:topicDetails").process((exchange: Exchange) => {
+        println(exchange.getIn.getHeaders)
+        exchange.getIn.setBody(TopicDetails(exchange.getIn.getHeader("filter[filters][0][value]", classOf[String]),
+          exchange.getIn.getHeader("callback", classOf[String])))}
+      ).to(monitor)
 
       from("direct:showMessage").process((exchange: Exchange) =>
         exchange.getIn.setBody(Message(exchange.getIn.getHeader("id", classOf[String]),

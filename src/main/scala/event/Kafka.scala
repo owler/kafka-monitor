@@ -2,8 +2,11 @@ package event
 
 import java.time.Duration
 import java.util.Properties
+
+import event.json.{Partition, Topic}
 import event.utils.CharmConfigObject
 import org.apache.kafka.clients.consumer._
+
 import collection.JavaConverters._
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
@@ -40,12 +43,12 @@ object Kafka {
     consumer.close()
   }
 
-  def getTopics: List[String] = {
-    repo.values.toList.sortBy(t => t.topic).map(_.topic)
+  def getTopics: List[Topic] = {
+    repo.values.toList.sortBy(t => t.topic).map(t => Topic(t.topic))
   }
 
-  def getTopic(topicName: String): TopicMetaData = {
-    repo(topicName)
+  def getTopic(topicName: String): List[Partition] = {
+    repo(topicName).metadata.map(tmd => Partition(tmd._1, tmd._2._1, tmd._2._2)).toList
   }
 
   implicit class ToSortedMap[A,B](tuples: TraversableOnce[(A, B)])

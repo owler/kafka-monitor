@@ -1,0 +1,139 @@
+<html>
+<head>
+    <title>
+        Kafka monitor UI
+    </title>
+    <link rel="StyleSheet" href="css/style.css" type="text/css">
+    <link href="styles/kendo.common.min.css" rel="stylesheet"/>
+    <link href="styles/kendo.metro.min.css" rel="stylesheet"/>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/kendo.all.min.js"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>Kafka monitor UI</h1>
+    </div>
+    <div id="content">
+        <br/>
+        <style scoped>
+
+            #gridCacheType, #gridTasks {
+                border-collapse: separate;
+                border-spacing: 0;
+                font-family: "Calibri";
+                font-size: 12px;
+            }
+
+            #gridCacheType th, #gridTasks th {
+                background-color: #ef652a;
+                padding: 6px 6px;
+                color: #fff;
+                text-align: left;
+                line-height: 14px;
+                border-width: 1px;
+                border-style: solid;
+                border-color: #d75b26 #d75b26 #d75b26 #f28455;
+                font-family: "Calibri";
+                font-size: 12px;
+
+            }
+
+            #gridCacheType td, #gridTasks td {
+                line-height: 23px;
+                padding: 0 6px;
+                background: #f5f5f5;
+                color: #3d3d3d;
+                border-width: 1px;
+                border-style: solid;
+                border-color: #f4f4f4 #d6d6d6 #d6d6d6 #f4f4f4;
+                font-family: "Calibri";
+                font-size: 12px;
+
+            }
+
+        </style>
+
+        <div class="comments-head">Topics:</div>
+        <div id="gridTasks" style="width: 350px;"></div>
+        <br/>
+        <script>
+
+            var transport = {
+                read: {
+                    url: "http://localhost:8877/topic/list",
+                    dataType: "jsonp",
+                                    jsonp: "callback",
+                    cache: false
+                }
+            };
+
+            var transportDetails = {
+                read: {
+                    url: "http://localhost:8877/topic/details",
+                    dataType: "jsonp",
+                                    jsonp: "callback",
+                    cache: false
+                }
+            };
+
+            var tasksDataSource = new kendo.data.DataSource({
+                transport: transport,
+                //data: data,
+                schema: {
+                    data: "topics"
+                }
+            });
+
+            function createGrid() {
+                $("#gridTasks").kendoGrid({
+                    columns:[
+                        {title: "Task name", field: "topic"}
+                    ],
+                    scrollable: false,
+                    dataSource: tasksDataSource,
+                                    detailInit: detailInit,
+                    dataBound: function() {
+                      this.expandRow(this.tbody.find("tr.k-master-row").first());
+                    },
+                });
+            }
+
+
+            $(document).ready(function() {
+
+                        createGrid();
+
+            });
+
+        function detailInit(e) {
+            $("<div/>").appendTo(e.detailCell).kendoGrid({
+                dataSource: {
+                    type: "jsonp",
+                    transport: transportDetails,
+                schema: {
+                    data: "partitions"
+                },
+
+                    serverPaging: false,
+                    serverSorting: false,
+                    serverFiltering: true,
+                    filter: { field: "topic", operator: "eq", value: e.data.topic }
+                },
+                scrollable: false,
+                sortable: true,
+                pageable: false,
+                columns: [
+                    { field: "partition", width: "60px" },
+                    { field: "start", title:"Start", width: "110px" },
+                    { field: "end", title:"End" }
+                ]
+            });
+        }
+
+        </script>
+        <br/>
+    </div>
+</div>
+</body>
+</html>
