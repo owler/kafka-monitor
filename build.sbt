@@ -44,7 +44,7 @@ pack := {
     (clean.value, update.value, crossTarget.value, (packageBin in Compile).value) match {
         case (cl, updateReport, out, jar) =>
             val dist = out / "dist"
-            val af: ArtifactFilter = (a: Artifact) => a.`type` != "src/web/source" && a.`type` != "javadoc" && a.`type` != "javadocs"
+            val af: ArtifactFilter = (a: Artifact) => a.`type` != "source" && a.`type` != "javadoc" && a.`type` != "javadocs"
             //updateReport.select(configuration = Set("runtime"), configurationFilter(name = "runtime"), artifact = af)  foreach {
             updateReport.select(configuration = configurationFilter(name = "runtime"), module = moduleFilter(name = "*"), artifact = af) foreach {
                 srcPath =>
