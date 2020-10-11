@@ -29,7 +29,7 @@ object KafkaMonitor {
         exchange.getIn.setBody(ListTopics(exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
 
       from("direct:topicDetails").process((exchange: Exchange) =>
-        exchange.getIn.setBody(TopicDetails(exchange.getIn.getHeader("id", classOf[String]),
+        exchange.getIn.setBody(TopicDetails(exchange.getIn.getHeader("id", classOf[String]).split("eq")(1),
           exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
 
       from("direct:showMessage").process((exchange: Exchange) =>
