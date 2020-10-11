@@ -1,25 +1,24 @@
 package event.processor
 
 import java.nio.file.Paths
+
 import org.apache.camel.{Exchange, Processor}
 import org.apache.commons.io.IOUtils
+import java.io.IOException
+import java.nio.file.{FileSystems, Files}
+import org.apache.camel.Exchange
 
 class StaticContentProcessor extends Processor {
+
   override def process(exchange: Exchange): Unit = {
-    import org.apache.camel.Exchange
-    import java.io.IOException
-    import java.io.InputStream
-    import java.nio.file.FileSystems
-    import java.nio.file.Files
-    import java.nio.file.Path
     val in = exchange.getIn
 
-    var relativepath = in.getHeader(Exchange.HTTP_PATH, classOf[String])
+    var relativepath = in.getHeader(Exchange.HTTP_PATH, classOf[String]).replaceAll("/+", "/")
     val requestPath = in.getHeader("CamelServletContextPath", classOf[String]) //CamelServletContextPath
     println("relativepath: " + relativepath)
     if (relativepath.isEmpty || relativepath == "/") relativepath = "index.html"
 
-    val formattedPath = String.format("%s%s", requestPath, relativepath)
+    val formattedPath = String.format("%s/%s", requestPath, relativepath).replaceAll("/+", "/")
     println(formattedPath)
     val pathStream = this.getClass.getResourceAsStream(formattedPath)
     println("pathStream: " + pathStream)
