@@ -1,11 +1,12 @@
 package event
 
 import java.text.SimpleDateFormat
+
 import akka.actor.{Actor, ActorLogging}
 import akka.camel.CamelMessage
-import event.message.{ListTopics, Message}
-import org.json4s.native.Serialization.{write}
-import org.json4s.{DefaultFormats}
+import event.message.{ListTopics, Message, TopicDetails}
+import org.json4s.native.Serialization.write
+import org.json4s.DefaultFormats
 
 
 class KafkaMonitorActor extends Actor with ActorLogging {
@@ -14,14 +15,19 @@ class KafkaMonitorActor extends Actor with ActorLogging {
     override def dateFormatter = new SimpleDateFormat(dataformat)
   }
 
-  case class Topics(topics: List[TopicMetaData])
+  case class Topics(topics: List[String])
   case class KMessage(message: Array[Byte])
+
   override def receive: Receive = {
     case msg: CamelMessage =>
       sender ! (msg.body match {
         case ListTopics(callback) => callback match {
           case null => write(Topics(Kafka.getTopics))
           case _ => new CamelMessage("/**/" + callback + "(" + write(Topics(Kafka.getTopics)) + ")", Map("content-type"->"application/x-javascript"))
+        }
+        case TopicDetails(topicName, callback) => callback match {
+          case null => write(Kafka.getTopic(topicName))
+          case _ => new CamelMessage("/**/" + callback + "(" + write(Kafka.getTopic(topicName)) + ")", Map("content-type"->"application/x-javascript"))
         }
         case Message(topicName, partition, offset, callback) => callback match {
           case null => write(KMessage(Kafka.getMessage(topicName, partition.toInt, offset.toLong)))
