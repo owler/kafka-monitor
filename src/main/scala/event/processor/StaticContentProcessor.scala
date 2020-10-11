@@ -1,8 +1,8 @@
 package event.processor
 
+import java.nio.file.Paths
 import org.apache.camel.{Exchange, Processor}
-
-import scala.io.Source
+import org.apache.commons.io.IOUtils
 
 class StaticContentProcessor extends Processor {
   override def process(exchange: Exchange): Unit = {
@@ -23,12 +23,12 @@ class StaticContentProcessor extends Processor {
     println(formattedPath)
     val pathStream = this.getClass.getResourceAsStream(formattedPath)
     println("pathStream: " + pathStream)
-    //val path = FileSystems.getDefault.getPath(this.getClass.getResource(formattedPath).getPath)
+    val path = FileSystems.getDefault.getPath(Paths.get(this.getClass.getResource(formattedPath).toURI).toString)
 
     val out = exchange.getOut
     try {
-      out.setBody(Source.fromInputStream(pathStream).toArray)
-      //out.setHeader(Exchange.CONTENT_TYPE, Files.probeContentType(path))
+      out.setBody(IOUtils.toByteArray(pathStream))
+      out.setHeader(Exchange.CONTENT_TYPE, Files.probeContentType(path))
     } catch {
       case e: IOException =>
         out.setBody(relativepath + " not found." + e.getMessage)

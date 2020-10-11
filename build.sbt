@@ -22,6 +22,9 @@ unmanagedBase := baseDirectory.value / "lib"
 libraryDependencies += "jakarta.xml.bind" % "jakarta.xml.bind-api" % "2.3.3"
 // https://mvnrepository.com/artifact/org.apache.kafka/kafka
 libraryDependencies += "org.apache.kafka" %% "kafka" % "2.2.0"
+// https://mvnrepository.com/artifact/commons-io/commons-io
+libraryDependencies += "commons-io" % "commons-io" % "2.8.0"
+
 
 libraryDependencies += "junit" % "junit" % "4.12" % "test"
 libraryDependencies += "org.scalatest" % "scalatest_2.12" % "3.0.4"
