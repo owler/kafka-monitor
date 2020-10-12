@@ -18,7 +18,7 @@
         <br/>
         <style scoped>
 
-            #gridCacheType, #gridTasks {
+            #gridTasks {
                 border-collapse: separate;
                 border-spacing: 0;
                 font-family: "Calibri";
@@ -39,7 +39,7 @@
 
             }
 
-            #gridCacheType td, #gridTasks td {
+            #gridTasks td {
                 line-height: 23px;
                 padding: 0 6px;
                 background: #f5f5f5;
@@ -94,7 +94,7 @@
                     dataSource: tasksDataSource,
                                     detailInit: detailInit,
                     dataBound: function() {
-                      this.expandRow(this.tbody.find("tr.k-master-row").first());
+                      //this.expandRow(this.tbody.find("tr.k-master-row").first());
                     },
                 });
             }

@@ -48,7 +48,7 @@ object Kafka {
   }
 
   def getTopic(topicName: String): List[Partition] = {
-    repo(topicName).metadata.map(tmd => Partition(tmd._1, tmd._2._1, tmd._2._2)).toList
+    repo(topicName).metadata.map(tmd => Partition(topicName, tmd._1, tmd._2._1, tmd._2._2)).toList
   }
 
   implicit class ToSortedMap[A,B](tuples: TraversableOnce[(A, B)])
