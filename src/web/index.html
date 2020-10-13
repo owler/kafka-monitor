@@ -77,8 +77,8 @@
                             </td>
                         </tr>
                         <tr>
-                            <td callspan="5">
-                                <div id="messageList" style="height:100%"></div>
+                            <td colspan="5">
+                                <div id="messageList" style="height:500px;"></div>
                             </td>
                         </tr>
                     </table>
@@ -90,13 +90,13 @@
                 </td>
             </tr>
         </table>
-            <script>
+        <script>
 
             var transport = {
                 read: {
                     url: "http://localhost:8877/topic/list",
                     dataType: "jsonp",
-                                    jsonp: "callback",
+                    jsonp: "callback",
                     cache: false
                 }
             };
@@ -113,7 +113,7 @@
             var transportForMessage = {
                 read:{
                     url: function(data) {
-                    return  "http://localhost:8877/topic/" +$("#topic2search").val() + "/partition/" + $("#partition2search").val() + "/offset/" + $("#offset2search").val();
+                    return  "http://localhost:8877/topic/" +$("#topic2search").val() + "/partition/" + $("#partition2search").val() + "/offset/" + $("#offset2search").val() + "/limit/10";
                     },
                 dataType:"jsonp",
                 cache:false,
@@ -133,9 +133,10 @@
                 transport: transportForMessage,
                 //data: data,
                 schema: {
-                    data: "message"
+                    data: "messages"
                 }
             });
+
 
             function createGrid() {
                 $("#gridTasks").kendoGrid({
@@ -145,6 +146,19 @@
                     scrollable: true,
                     dataSource: tasksDataSource,
                     detailInit: detailInit,
+                    dataBound: function() {
+                     // this.expandRow(this.tbody.find("tr.k-master-row").first());
+                    },
+                });
+            }
+
+            function createMessageGrid() {
+                $("#messageList").kendoGrid({
+                    columns:[
+                        {title: "Message", field: "message"}
+                    ],
+                    scrollable: true,
+                    dataSource: messageDataSource,
                     dataBound: function() {
                      // this.expandRow(this.tbody.find("tr.k-master-row").first());
                     },
@@ -200,6 +214,7 @@
             }
 
             function search(e) {
+                createMessageGrid();
                 messageDataSource.read();
             }
     </script>
