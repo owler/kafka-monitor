@@ -68,11 +68,11 @@ object Kafka {
   def getMessage(topic: String, partition: Int, offset: Long, count: Int = 1): Option[List[KMessage[Array[Byte]]]] = {
     repo.get(topic).flatMap(
       _.metadata.get(partition).flatMap(offsets => if (offsets._1 != offsets._2 && offset <= offsets._2) Some(offset) else None)
-    ) map { verifyedOffset =>
+    ) map { verifiedOffset =>
       val consumer = createConsumer()
       val tp = new TopicPartition(topic, partition)
       consumer.assign(List(tp).asJava)
-      consumer.seek(tp, verifyedOffset)
+      consumer.seek(tp, verifiedOffset)
       val records = consumer.poll(Duration.ofSeconds(10))
       records.iterator().asScala.take(count).map(m => KMessage(m.offset(), m.timestamp(), m.value())).toList
     }
