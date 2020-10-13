@@ -1,5 +1,6 @@
 package event
 
+import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 
 import akka.actor.{Actor, ActorLogging}
@@ -29,8 +30,8 @@ class KafkaMonitorActor extends Actor with ActorLogging {
           case _ => new CamelMessage("/**/" + callback + "(" + write(Partitions(Kafka.getTopic(topicName))) + ")", Map("content-type"->"application/x-javascript"))
         }
         case Message(topicName, partition, offset, callback) => callback match {
-          case null => write(KMessage(Kafka.getMessage(topicName, partition.toInt, offset.toLong)))
-          case _ => new CamelMessage("/**/" + callback + "(" + write(KMessage(Kafka.getMessage(topicName, partition.toInt, offset.toLong))) + ")", Map("content-type"->"application/x-javascript"))
+          case null => write(KMessage(new String(Kafka.getMessage(topicName, partition.toInt, offset.toLong), StandardCharsets.UTF_8)))
+          case _ => new CamelMessage("/**/" + callback + "(" + write(KMessage(new String(Kafka.getMessage(topicName, partition.toInt, offset.toLong), StandardCharsets.UTF_8))) + ")", Map("content-type"->"application/x-javascript"))
         }
       })
   }

@@ -3,7 +3,7 @@
     <title>
         Kafka monitor UI
     </title>
-    <link rel="StyleSheet" href="css/style.css" type="text/css">
+    <link href="css/style.css" rel="StyleSheet" type="text/css">
     <link href="source/styles/kendo.common.css" rel="stylesheet"/>
     <link href="source/styles/kendo.default.css" rel="stylesheet"/>
     <script src="source/jquery-1.7.1.js"></script>
@@ -14,27 +14,24 @@
     <div id="header">
         <h1>Kafka monitor UI</h1>
     </div>
+    <br/>
     <div id="content">
-        <br/>
         <style scoped>
 
-            #gridTasks {
+                #gridTasks {
                 border-collapse: separate;
                 border-spacing: 0;
-                font-family: "Calibri";
                 font-size: 12px;
             }
 
-            #gridCacheType th, #gridTasks th {
-                background-color: #ef652a;
+            #gridTasks th {
                 padding: 6px 6px;
-                color: #fff;
+                color: #333;
                 text-align: left;
                 line-height: 14px;
-                border-width: 1px;
+                border-width: 0px;
                 border-style: solid;
                 border-color: #d75b26 #d75b26 #d75b26 #f28455;
-                font-family: "Calibri";
                 font-size: 12px;
 
             }
@@ -42,22 +39,58 @@
             #gridTasks td {
                 line-height: 23px;
                 padding: 0 6px;
-                background: #f5f5f5;
                 color: #3d3d3d;
-                border-width: 1px;
+                border-width: 0px;
                 border-style: solid;
                 border-color: #f4f4f4 #d6d6d6 #d6d6d6 #f4f4f4;
-                font-family: "Calibri";
                 font-size: 12px;
-
             }
-
         </style>
 
-        <div class="comments-head">Topics:</div>
-        <div id="gridTasks" style="width: 350px;"></div>
-        <br/>
-        <script>
+        <table border="0">
+            <tr valign="top">
+                <td rowspan="2">
+                    <div id="gridTasks" style="width: 420px;height:800px"></div>
+                </td>
+                <td>
+                    <table border="0">
+                        <tr>
+                            <td>
+                                <button id="submit" onclick="search()"/>
+                                Search
+                            </td>
+                            <td>
+                                <input id="topic2search" style="width:250px;"/>
+                            </td>
+                            <td>
+                                <input id="partition2search" style="width:150px;"/>
+                            </td>
+
+                            <td>
+                                <input id="offset2search" style="width:150px;"/>
+                            </td>
+                            <td>
+                                <select id="messageTypeComboBox">
+                                    <option>Bytes</option>
+                                    <option>RFG</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td callspan="5">
+                                <div id="messageList" style="height:100%"></div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div id="showMessage">message</div>
+                </td>
+            </tr>
+        </table>
+            <script>
 
             var transport = {
                 read: {
@@ -77,6 +110,17 @@
                 }
             };
 
+            var transportForMessage = {
+                read:{
+                    url: function(data) {
+                    return  "http://localhost:8877/topic/" +$("#topic2search").val() + "/partition/" + $("#partition2search").val() + "/offset/" + $("#offset2search").val();
+                    },
+                dataType:"jsonp",
+                cache:false,
+                jsonp: "callback"
+                }
+            };
+
             var tasksDataSource = new kendo.data.DataSource({
                 transport: transport,
                 //data: data,
@@ -85,16 +129,24 @@
                 }
             });
 
+            var messageDataSource = new kendo.data.DataSource({
+                transport: transportForMessage,
+                //data: data,
+                schema: {
+                    data: "message"
+                }
+            });
+
             function createGrid() {
                 $("#gridTasks").kendoGrid({
                     columns:[
                         {title: "Topic name", field: "topic"}
                     ],
-                    scrollable: false,
+                    scrollable: true,
                     dataSource: tasksDataSource,
                                     detailInit: detailInit,
                     dataBound: function() {
-                      //this.expandRow(this.tbody.find("tr.k-master-row").first());
+                     // this.expandRow(this.tbody.find("tr.k-master-row").first());
                     },
                 });
             }
@@ -105,6 +157,26 @@
                         createGrid();
 
             });
+
+
+
+function injectDetailRowEvent() {
+    var tr = $('.k-detail-cell tbody tr');
+    tr.click(function () {
+        var  id = $(this).find('#id').text().split(":");
+                $("#topic2search").val(id[0]);
+                $("#partition2search").val(id[1]);
+                $("#offset2search").val(id[2]);
+
+    });
+    tr.mouseover(function () {
+        $(this).css("background-color", "#9BBB38");
+    });
+    tr.mouseout(function () {
+        $(this).css("background-color", "");
+    });
+}
+
 
         function detailInit(e) {
             $("<div/>").appendTo(e.detailCell).kendoGrid({
@@ -124,15 +196,19 @@
                 sortable: true,
                 pageable: false,
                 columns: [
-                    { field: "partition", width: "60px" },
-                    { field: "start", title:"Start", width: "110px" },
-                    { field: "end", title:"End" }
-                ]
+                    { title:"partition", width:27, template:"<span>#= partition #</span><span style='display: none' id='id'>#= topic #:#= partition #:#= start #</span>"},
+                    { field: "start", title:"Start", width: "50px" },
+                    { field: "end", title:"End", width:"50px" }
+                ],
+                                dataBound:injectDetailRowEvent
             });
         }
 
-        </script>
-        <br/>
+        function search(e) {
+            messageDataSource.read();
+        }
+
+    </script>
     </div>
 </div>
 </body>
