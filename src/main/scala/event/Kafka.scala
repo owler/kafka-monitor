@@ -64,12 +64,14 @@ object Kafka {
   }
 
 
-  def getMessage(topic: String, partition: Int, offset: Long, count: Int = 1): List[KMessage[Array[Byte]]] = {
-    val consumer = createConsumer()
-    val tp = new TopicPartition(topic, partition)
-    consumer.assign(List(tp).asJava)
-    consumer.seek(tp, offset)
-    val records = consumer.poll(Duration.ofSeconds(10))
-    records.iterator().asScala.take(count).map(m => KMessage(m.offset(), m.timestamp(), m.value())).toList
+  def getMessage(topic: String, partition: Int, offset: Long, count: Int = 1): Option[List[KMessage[Array[Byte]]]] = {
+    repo.get(topic).flatMap(_.metadata.get(partition).map(offsets => offsets._1 != offsets._2 && offset < offsets._2)).map(c => offset) map { verifyedOffset =>
+      val consumer = createConsumer()
+      val tp = new TopicPartition(topic, partition)
+      consumer.assign(List(tp).asJava)
+      consumer.seek(tp, verifyedOffset)
+      val records = consumer.poll(Duration.ofSeconds(10))
+      records.iterator().asScala.take(count).map(m => KMessage(m.offset(), m.timestamp(), m.value())).toList
+    }
   }
 }

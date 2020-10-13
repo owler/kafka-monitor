@@ -30,16 +30,16 @@ class KafkaMonitorActor extends Actor with ActorLogging {
           case _ => new CamelMessage("/**/" + callback + "(" + write(Partitions(Kafka.getTopic(topicName))) + ")", Map("content-type"->"application/x-javascript"))
         }
         case Messages(topicName, partition, offset, callback) => {
-          val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10)
-            .map(a => KMessage(a.offset, a.timestamp, new String(a.message, StandardCharsets.UTF_8).substring(0, 500))))
+          val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10).map(
+            _.map(a => KMessage(a.offset, a.timestamp, new String(a.message, StandardCharsets.UTF_8).substring(0, 500)))).getOrElse(List()))
           callback match {
             case null => write(response)
             case _ => new CamelMessage("/**/" + callback + "(" + write(response) + ")", Map("content-type"->"application/x-javascript"))
           }
         }
         case Message(topicName, partition, offset, callback) => {
-          val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong)
-            .map(a => KMessage(a.offset, a.timestamp, new String(a.message, StandardCharsets.UTF_8))))
+          val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong).map(
+            _.map(a => KMessage(a.offset, a.timestamp, new String(a.message, StandardCharsets.UTF_8)))).getOrElse(List()))
           callback match {
           case null => write(response)
           case _ => new CamelMessage("/**/" + callback + "(" + write(response) + ")", Map("content-type"->"application/x-javascript"))
@@ -47,8 +47,8 @@ class KafkaMonitorActor extends Actor with ActorLogging {
         }
         case MessageB(topicName, partition, offset, callback) => {
           Kafka.getMessage(topicName, partition.toInt, offset.toLong) match {
-            case Nil => Array[Byte]()
-            case l => l.head.message
+            case None => Array[Byte]()
+            case Some(l) => l.head.message
           }
         }
 
