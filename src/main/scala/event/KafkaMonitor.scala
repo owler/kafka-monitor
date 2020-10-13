@@ -22,7 +22,8 @@ object KafkaMonitor {
       rest("/topic/")
         .get("/list").to("direct:listTopics")
         .get("/details?filter[filters][0][value]={id}").to("direct:topicDetails")
-        .get("/{id}/partition/{partition}/offset/{offset}").to("direct:showMessages")
+        .get("/{id}/partition/{partition}/offset/{offset}/limit/{limit}").to("direct:showMessages")
+        .get("/{id}/partition/{partition}/offset/{offset}").to("direct:showMessage")
         .get("/{id}/partition/{partition}/offset/{offset}/download").produces("application/octet-stream").to("direct:downloadMessage")
 
       from("jetty:http://0.0.0.0:8081/?matchOnUriPrefix=true").process(staticProcessor)
@@ -38,7 +39,14 @@ object KafkaMonitor {
       from("direct:showMessages").process((exchange: Exchange) =>
         exchange.getIn.setBody(Messages(exchange.getIn.getHeader("id", classOf[String]),
           exchange.getIn.getHeader("partition", classOf[String]),
-          exchange.getIn.getHeader("offset", classOf[String]), exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
+          exchange.getIn.getHeader("offset", classOf[String]),
+          exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
+
+      from("direct:showMessage").process((exchange: Exchange) =>
+        exchange.getIn.setBody(Messages(exchange.getIn.getHeader("id", classOf[String]),
+          exchange.getIn.getHeader("partition", classOf[String]),
+          exchange.getIn.getHeader("offset", classOf[String]),
+          exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
 
       from("direct:downloadMessage")
         .process((exchange: Exchange) =>
