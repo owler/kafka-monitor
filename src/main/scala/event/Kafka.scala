@@ -35,7 +35,7 @@ object Kafka {
     val consumer = createConsumer()
     val list = consumer.listTopics().asScala
     val tps: List[TopicPartition] = list.flatMap(t => t._2.asScala.map(partitionInfo => new TopicPartition(t._1, partitionInfo.partition()))).toList
-    repo ++= getTopicInfo(tps)
+    repo ++= getTopicInfo(tps, consumer)
     consumer.close()
   }
 
@@ -54,7 +54,7 @@ object Kafka {
       mutable.SortedMap(tuples.toSeq: _*)
   }
 
-  def getTopicInfo(tp: List[TopicPartition], consumer: KafkaConsumer[Array[Byte], Array[Byte]] = createConsumer()): Map[String, TopicMetaData] = {
+  def getTopicInfo(tp: List[TopicPartition], consumer: KafkaConsumer[Array[Byte], Array[Byte]]): Map[String, TopicMetaData] = {
     val startOffsets = consumer.beginningOffsets(tp.asJava).asScala
     val endOffsets = consumer.endOffsets(tp.asJava).asScala
     startOffsets.groupBy(_._1.topic()).map(x => x._1 -> TopicMetaData(x._1, x._2.map(y => y._1.partition() -> (y._2.toLong, endOffsets(y._1).toLong)).toSortedMap))
