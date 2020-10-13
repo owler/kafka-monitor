@@ -3,6 +3,7 @@ package event
 import java.time.Duration
 import java.util.Properties
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 import event.json.{KMessage, Partition, Topic}
 import event.utils.CharmConfigObject
@@ -19,8 +20,11 @@ case class TopicMetaData(topic: String, metadata: mutable.SortedMap[Int, (Long, 
 object Kafka {
   val conf = CharmConfigObject
   val BOOTSTRAP_SERVERS = conf.getString("kafka.brokers")
+  val cacheTime = conf.getConfig.getLong("kafka.cacheTime")
   var repo = new ConcurrentHashMap[String, TopicMetaData]().asScala
+  var repoRefreshTimestamp = new AtomicLong(0)
   refreshRepo
+
 
   private def createConsumer(props: Properties = new Properties()) = {
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS)
@@ -32,15 +36,26 @@ object Kafka {
   }
 
   def refreshRepo = {
-    val consumer = createConsumer()
-    val list = consumer.listTopics().asScala
-    val tps: List[TopicPartition] = list.flatMap(t => t._2.asScala.map(partitionInfo => new TopicPartition(t._1, partitionInfo.partition()))).toList
-    repo ++= getTopicInfo(tps, consumer)
-    consumer.close()
+    repo.synchronized {
+      if (rotten()) {
+        val consumer = createConsumer()
+        val list = consumer.listTopics().asScala
+        val tps: List[TopicPartition] = list.flatMap(t => t._2.asScala.map(partitionInfo => new TopicPartition(t._1, partitionInfo.partition()))).toList
+        repo ++= getTopicInfo(tps, consumer)
+        repoRefreshTimestamp.set(System.currentTimeMillis())
+        consumer.close()
+      }
+    }
+  }
+
+  def rotten(): Boolean = {
+    repoRefreshTimestamp.get() + cacheTime < System.currentTimeMillis()
   }
 
   def getTopics: List[Topic] = {
-    refreshRepo
+    if(rotten()) {
+      refreshRepo
+    }
     repo.values.toList.sortBy(t => t.topic).map(t => Topic(t.topic))
   }
 
