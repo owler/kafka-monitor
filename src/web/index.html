@@ -205,6 +205,7 @@
 
             $(document).ready(function() {
                         createGrid();
+                        createMessageGrid();
             });
 
             function injectMessageRowEvent() {
@@ -281,7 +282,6 @@
             }
 
             function search(e) {
-                createMessageGrid();
                 messageDataSource.read();
             }
     </script>
