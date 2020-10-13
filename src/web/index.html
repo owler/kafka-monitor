@@ -36,7 +36,7 @@
 
             }
 
-                   #showMessage td, #gridTasks td {
+                   #showMessage td, #gridTasks td, #controls td{
                 line-height: 23px;
                 padding: 0 6px;
                 color: #3d3d3d;
@@ -64,7 +64,8 @@
                     <div id="gridTasks" style="width: 420px;height:800px"></div>
                 </td>
                 <td>
-                    <table border="0">
+                    <table id="controls" border="0">
+                        <tr><td>&nbsp;</td><td>topic</td><td>Partition</td><td>Start</td><td>Selected</td><td>type</td></tr>
                         <tr>
                             <td>
                                 <button id="submit" onclick="search()"/>
@@ -74,11 +75,13 @@
                                 <input id="topic2search" style="width:250px;"/>
                             </td>
                             <td>
-                                <input id="partition2search" style="width:150px;"/>
+                                <input id="partition2search" style="width:50px;"/>
                             </td>
 
                             <td>
                                 <input id="offset2search" style="width:150px;"/>
+                            </td>
+                            <td><input id="selectedOffset2search" style='width:150px;'/>
                             </td>
                             <td>
                                 <select id="messageTypeComboBox">
@@ -88,7 +91,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="5" >
+                            <td colspan="6" >
                                 <div id="messageList" ></div>
                             </td>
                         </tr>
@@ -136,7 +139,7 @@
             var transport2ForMessage = {
                 read:{
                     url: function(data) {
-                    return  "http://localhost:8877/topic/" +$("#topic2search").val() + "/partition/" + $("#partition2search").val() + "/offset/" + $("#offset2search").val();
+                    return  "http://localhost:8877/topic/" +$("#topic2search").val() + "/partition/" + $("#partition2search").val() + "/offset/" + $("#selectedOffset2search").val();
                     },
                 dataType:"jsonp",
                 cache:false,
@@ -189,7 +192,7 @@
             function createMessageGrid() {
                 $("#messageList").kendoGrid({
                     columns:[
-                        {title:"Offset", width:27, template:"<span>#= offset #</span><span style='display: none' id='offsetId'>#= offset #</span>"},
+                        {title:"Offset", template:"<span>#= offset #</span><span style='display: none' id='offsetId'>#= offset #</span>"},
                         {title: "Timestamp", field: "timestamp"},
                         {title: "Message", field: "message"}
                     ],
@@ -210,8 +213,9 @@
                                                 var topic = $("#topic2search").val;
                                         var partition = $("#partition2search").val;
                                         var offset = $(this).find('#offsetId').text();
+                                                $("#selectedOffset2search").val(offset);
                                                 createShowGrid();
-//                        message2DataSource.read();
+                        message2DataSource.read();
                 });
                 tr.mouseover(function () {
                     $(this).css("background-color", "#9BBB38");
@@ -233,7 +237,7 @@
 
 
             function injectDetailRowEvent() {
-               var tr = $('.k-detail-cell tbody tr');
+                var tr = $('.k-detail-cell tbody tr');
                 tr.click(function () {
                     var  id = $(this).find('#id').text().split(":");
                             $("#topic2search").val(id[0]);
