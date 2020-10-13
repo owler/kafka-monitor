@@ -5,8 +5,8 @@ import java.text.SimpleDateFormat
 
 import akka.actor.{Actor, ActorLogging}
 import akka.camel.CamelMessage
-import event.json.{KMessage, KMessages, Partitions, Topics}
-import event.message.{ListTopics, Message, Messages, TopicDetails}
+import event.json.{KMessage, KMessageB, KMessages, Partitions, Topics}
+import event.message.{ListTopics, Message, MessageB, Messages, TopicDetails}
 import org.json4s.native.Serialization.write
 import org.json4s.DefaultFormats
 
@@ -43,6 +43,11 @@ class KafkaMonitorActor extends Actor with ActorLogging {
           case _ => new CamelMessage("/**/" + callback + "(" + write(response) + ")", Map("content-type"->"application/x-javascript"))
           }
         }
+        case MessageB(topicName, partition, offset, callback) => {
+          val response = Kafka.getMessage(topicName, partition.toInt, offset.toLong).map(a => KMessageB(a)).head
+          write(response)
+        }
+
       })
   }
 }
