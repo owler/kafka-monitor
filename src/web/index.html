@@ -105,7 +105,7 @@
                 read: {
                     url: "http://localhost:8877/topic/details",
                     dataType: "jsonp",
-                                    jsonp: "callback",
+                    jsonp: "callback",
                     cache: false
                 }
             };
@@ -153,61 +153,55 @@
 
 
             $(document).ready(function() {
-
                         createGrid();
-
             });
 
+            function injectDetailRowEvent() {
+                var tr = $('.k-detail-cell tbody tr');
+                tr.click(function () {
+                    var  id = $(this).find('#id').text().split(":");
+                            $("#topic2search").val(id[0]);
+                            $("#partition2search").val(id[1]);
+                            $("#offset2search").val(id[2]);
 
+                });
+                tr.mouseover(function () {
+                    $(this).css("background-color", "#9BBB38");
+                });
+                tr.mouseout(function () {
+                    $(this).css("background-color", "");
+                });
+            }
 
-function injectDetailRowEvent() {
-    var tr = $('.k-detail-cell tbody tr');
-    tr.click(function () {
-        var  id = $(this).find('#id').text().split(":");
-                $("#topic2search").val(id[0]);
-                $("#partition2search").val(id[1]);
-                $("#offset2search").val(id[2]);
+            function detailInit(e) {
+                $("<div/>").appendTo(e.detailCell).kendoGrid({
+                    dataSource: {
+                        type: "jsonp",
+                        transport: transportDetails,
+                    schema: {
+                        data: "partitions"
+                    },
 
-    });
-    tr.mouseover(function () {
-        $(this).css("background-color", "#9BBB38");
-    });
-    tr.mouseout(function () {
-        $(this).css("background-color", "");
-    });
-}
+                        serverPaging: false,
+                        serverSorting: false,
+                        serverFiltering: true,
+                        filter: { field: "topic", operator: "eq", value: e.data.topic }
+                    },
+                    scrollable: false,
+                    sortable: true,
+                    pageable: false,
+                    columns: [
+                        { title:"partition", width:27, template:"<span>#= partition #</span><span style='display: none' id='id'>#= topic #:#= partition #:#= start #</span>"},
+                        { field: "start", title:"Start", width: "50px" },
+                        { field: "end", title:"End", width:"50px" }
+                    ],
+                                    dataBound:injectDetailRowEvent
+                });
+            }
 
-
-        function detailInit(e) {
-            $("<div/>").appendTo(e.detailCell).kendoGrid({
-                dataSource: {
-                    type: "jsonp",
-                    transport: transportDetails,
-                schema: {
-                    data: "partitions"
-                },
-
-                    serverPaging: false,
-                    serverSorting: false,
-                    serverFiltering: true,
-                    filter: { field: "topic", operator: "eq", value: e.data.topic }
-                },
-                scrollable: false,
-                sortable: true,
-                pageable: false,
-                columns: [
-                    { title:"partition", width:27, template:"<span>#= partition #</span><span style='display: none' id='id'>#= topic #:#= partition #:#= start #</span>"},
-                    { field: "start", title:"Start", width: "50px" },
-                    { field: "end", title:"End", width:"50px" }
-                ],
-                                dataBound:injectDetailRowEvent
-            });
-        }
-
-        function search(e) {
-            messageDataSource.read();
-        }
-
+            function search(e) {
+                messageDataSource.read();
+            }
     </script>
     </div>
 </div>
