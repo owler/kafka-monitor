@@ -5,7 +5,7 @@ import java.util.Date
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.camel.{CamelExtension, _}
 import akka.routing.FromConfig
-import event.message.{ListTopics, Message, Messages, TopicDetails}
+import event.message.{ListTopics, Message, MessageB, Messages, TopicDetails}
 import event.processor.StaticContentProcessor
 import event.utils.CharmConfigObject
 import org.apache.camel.Exchange
@@ -50,9 +50,10 @@ object KafkaMonitor {
 
       from("direct:downloadMessage")
         .process((exchange: Exchange) =>
-        exchange.getIn.setBody(Message(exchange.getIn.getHeader("id", classOf[String]),
+        exchange.getIn.setBody(MessageB(exchange.getIn.getHeader("id", classOf[String]),
           exchange.getIn.getHeader("partition", classOf[String]),
-          exchange.getIn.getHeader("offset", classOf[String]), exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
+          exchange.getIn.getHeader("offset", classOf[String]),
+          exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
         .setHeader("Content-Disposition", simple("attachment;filename=kafka-msg.bin"));
     }
 
