@@ -2,15 +2,15 @@ package event
 
 import java.time.Duration
 import java.util.Properties
+import java.util.concurrent.ConcurrentHashMap
 
-import event.json.{KMessage, KMessages, Partition, Topic}
+import event.json.{KMessage, Partition, Topic}
 import event.utils.CharmConfigObject
 import org.apache.kafka.clients.consumer._
-
-import collection.JavaConverters._
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 
@@ -19,10 +19,10 @@ case class TopicMetaData(topic: String, metadata: mutable.SortedMap[Int, (Long, 
 object Kafka {
   val conf = CharmConfigObject
   val BOOTSTRAP_SERVERS = conf.getString("kafka.brokers")
-  var repo: Map[String, TopicMetaData] = Map[String, TopicMetaData]()
+  var repo = new ConcurrentHashMap[String, TopicMetaData]().asScala
   refreshRepo
 
-  private def createConsumer(props: Properties = new Properties() ) = {
+  private def createConsumer(props: Properties = new Properties()) = {
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS)
     //props.put(ConsumerConfig.GROUP_ID_CONFIG, null)
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
@@ -44,6 +44,7 @@ object Kafka {
   }
 
   def getTopics: List[Topic] = {
+    refreshRepo
     repo.values.toList.sortBy(t => t.topic).map(t => Topic(t.topic))
   }
 
@@ -51,8 +52,8 @@ object Kafka {
     repo(topicName).metadata.map(tmd => Partition(topicName, tmd._1, tmd._2._1, tmd._2._2)).toList
   }
 
-  implicit class ToSortedMap[A,B](tuples: TraversableOnce[(A, B)])
-                                 (implicit ordering: Ordering[A]) {
+  implicit class ToSortedMap[A, B](tuples: TraversableOnce[(A, B)])
+                                  (implicit ordering: Ordering[A]) {
     def toSortedMap =
       mutable.SortedMap(tuples.toSeq: _*)
   }
@@ -66,7 +67,7 @@ object Kafka {
 
   def getMessage(topic: String, partition: Int, offset: Long, count: Int = 1): Option[List[KMessage[Array[Byte]]]] = {
     repo.get(topic).flatMap(
-      _.metadata.get(partition).flatMap(offsets => if(offsets._1 != offsets._2 && offset < offsets._2) Some(offset) else None )
+      _.metadata.get(partition).flatMap(offsets => if (offsets._1 != offsets._2 && offset < offsets._2) Some(offset) else None)
     ) map { verifyedOffset =>
       val consumer = createConsumer()
       val tp = new TopicPartition(topic, partition)
