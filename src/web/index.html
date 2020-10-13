@@ -18,13 +18,13 @@
     <div id="content">
         <style scoped>
 
-                #gridTasks {
+                #messageList, #gridTasks {
                 border-collapse: separate;
                 border-spacing: 0;
                 font-size: 12px;
             }
 
-            #gridTasks th {
+            #messageList th, #gridTasks th, #showMessage th {
                 padding: 6px 6px;
                 color: #333;
                 text-align: left;
@@ -36,7 +36,7 @@
 
             }
 
-            #gridTasks td {
+                   #showMessage td, #gridTasks td {
                 line-height: 23px;
                 padding: 0 6px;
                 color: #3d3d3d;
@@ -45,6 +45,17 @@
                 border-color: #f4f4f4 #d6d6d6 #d6d6d6 #f4f4f4;
                 font-size: 12px;
             }
+
+            #messageList td {
+                line-height: 23px;
+                padding: 0 6px;
+                color: #3d3d3d;
+                border-width: 0px;
+                border-style: solid;
+                border-color: #f4f4f4 #d6d6d6 #d6d6d6 #f4f4f4;
+                font-size: 12px;
+                                overflow:hidden; text-overflow: ellipsis; white-space:nowrap;
+                                }
         </style>
 
         <table border="0">
@@ -77,8 +88,8 @@
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="5">
-                                <div id="messageList" style="height:500px;"></div>
+                            <td colspan="5" >
+                                <div id="messageList" ></div>
                             </td>
                         </tr>
                     </table>
@@ -86,7 +97,8 @@
             </tr>
             <tr>
                 <td>
-                    <div id="showMessage">message</div>
+                    <div id="showMessage" style="height:500px;">
+                    </div>
                 </td>
             </tr>
         </table>
@@ -121,6 +133,18 @@
                 }
             };
 
+            var transport2ForMessage = {
+                read:{
+                    url: function(data) {
+                    return  "http://localhost:8877/topic/" +$("#topic2search").val() + "/partition/" + $("#partition2search").val() + "/offset/" + $("#offset2search").val();
+                    },
+                dataType:"jsonp",
+                cache:false,
+                jsonp: "callback"
+                }
+            };
+
+
             var tasksDataSource = new kendo.data.DataSource({
                 transport: transport,
                 //data: data,
@@ -136,6 +160,16 @@
                     data: "messages"
                 }
             });
+
+            var message2DataSource = new kendo.data.DataSource({
+                transport: transport2ForMessage,
+                //data: data,
+                schema: {
+                    data: "messages"
+                }
+
+            });
+
 
 
             function createGrid() {
@@ -155,15 +189,13 @@
             function createMessageGrid() {
                 $("#messageList").kendoGrid({
                     columns:[
-                        {title: "Offset", field: "offset"},
+                        {title:"Offset", width:27, template:"<span>#= offset #</span><span style='display: none' id='offsetId'>#= offset #</span>"},
                         {title: "Timestamp", field: "timestamp"},
                         {title: "Message", field: "message"}
                     ],
                     scrollable: true,
                     dataSource: messageDataSource,
-                    dataBound: function() {
-                     // this.expandRow(this.tbody.find("tr.k-master-row").first());
-                    },
+                                    dataBound:  injectMessageRowEvent
                 });
             }
 
@@ -172,8 +204,36 @@
                         createGrid();
             });
 
+            function injectMessageRowEvent() {
+                var tr = $('#messageList').data("kendoGrid").tbody.find(">tr");
+                tr.click(function (e) {
+                                                var topic = $("#topic2search").val;
+                                        var partition = $("#partition2search").val;
+                                        var offset = $(this).find('#offsetId').text();
+                                                createShowGrid();
+//                        message2DataSource.read();
+                });
+                tr.mouseover(function () {
+                    $(this).css("background-color", "#9BBB38");
+                });
+                tr.mouseout(function () {
+                    $(this).css("background-color", "");
+                });
+            }
+
+            function createShowGrid() {
+                $("#showMessage").kendoGrid({
+                    columns:[
+                        {title: "Message", field: "message"}
+                    ],
+                    scrollable: true,
+                    dataSource: message2DataSource
+                });
+            }
+
+
             function injectDetailRowEvent() {
-                var tr = $('.k-detail-cell tbody tr');
+               var tr = $('.k-detail-cell tbody tr');
                 tr.click(function () {
                     var  id = $(this).find('#id').text().split(":");
                             $("#topic2search").val(id[0]);

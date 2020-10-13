@@ -38,10 +38,8 @@ class KafkaMonitorActor extends Actor with ActorLogging {
           }
         }
         case Message(topicName, partition, offset, callback) => {
-          val response = Kafka.getMessage(topicName, partition.toInt, offset.toLong) match {
-            case Nil => KMessage[String](0, 0,"")
-            case l => l.head
-          }
+          val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong)
+            .map(a => KMessage(a.offset, a.timestamp, new String(a.message, StandardCharsets.UTF_8))))
           callback match {
           case null => write(response)
           case _ => new CamelMessage("/**/" + callback + "(" + write(response) + ")", Map("content-type"->"application/x-javascript"))
