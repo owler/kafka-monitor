@@ -3,7 +3,7 @@ package event
 import java.time.Duration
 import java.util.Properties
 
-import event.json.{Partition, Topic}
+import event.json.{KMessage, KMessages, Partition, Topic}
 import event.utils.CharmConfigObject
 import org.apache.kafka.clients.consumer._
 
@@ -64,12 +64,12 @@ object Kafka {
   }
 
 
-  def getMessage(topic: String, partition: Int, offset: Long, count: Int = 1): List[Array[Byte]] = {
+  def getMessage(topic: String, partition: Int, offset: Long, count: Int = 1): List[KMessage[Array[Byte]]] = {
     val consumer = createConsumer()
     val tp = new TopicPartition(topic, partition)
     consumer.assign(List(tp).asJava)
     consumer.seek(tp, offset)
     val records = consumer.poll(Duration.ofSeconds(10))
-    records.iterator().asScala.take(count).map(_.value()).toList
+    records.iterator().asScala.take(count).map(m => KMessage(m.timestamp(), m.value())).toList
   }
 }

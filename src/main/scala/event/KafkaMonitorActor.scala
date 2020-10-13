@@ -30,15 +30,16 @@ class KafkaMonitorActor extends Actor with ActorLogging {
           case _ => new CamelMessage("/**/" + callback + "(" + write(Partitions(Kafka.getTopic(topicName))) + ")", Map("content-type"->"application/x-javascript"))
         }
         case Messages(topicName, partition, offset, callback) => {
-          val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10).map(a => KMessage(new String(a, StandardCharsets.UTF_8))))
+          val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10)
+            .map(a => KMessage(a.timestamp, new String(a.message, StandardCharsets.UTF_8))))
           callback match {
             case null => write(response)
             case _ => new CamelMessage("/**/" + callback + "(" + write(response) + ")", Map("content-type"->"application/x-javascript"))
           }
         }
         case Message(topicName, partition, offset, callback) => {
-          val response = Kafka.getMessage(topicName, partition.toInt, offset.toLong).map(a => KMessage(new String(a, StandardCharsets.UTF_8))) match {
-            case Nil => KMessage("")
+          val response = Kafka.getMessage(topicName, partition.toInt, offset.toLong) match {
+            case Nil => KMessage[String](0,"")
             case l => l.head
           }
           callback match {
@@ -49,7 +50,7 @@ class KafkaMonitorActor extends Actor with ActorLogging {
         case MessageB(topicName, partition, offset, callback) => {
           Kafka.getMessage(topicName, partition.toInt, offset.toLong) match {
             case Nil => Array[Byte]()
-            case l => l.head
+            case l => l.head.message
           }
         }
 
