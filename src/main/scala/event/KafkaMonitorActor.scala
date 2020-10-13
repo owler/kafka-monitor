@@ -5,8 +5,8 @@ import java.text.SimpleDateFormat
 
 import akka.actor.{Actor, ActorLogging}
 import akka.camel.CamelMessage
-import event.json.{KMessage, Partitions, Topics}
-import event.message.{ListTopics, Message, TopicDetails}
+import event.json.{KMessage, KMessages, Partitions, Topics}
+import event.message.{ListTopics, Message, Messages, TopicDetails}
 import org.json4s.native.Serialization.write
 import org.json4s.DefaultFormats
 
@@ -29,9 +29,19 @@ class KafkaMonitorActor extends Actor with ActorLogging {
           case null => write(Partitions(Kafka.getTopic(topicName)))
           case _ => new CamelMessage("/**/" + callback + "(" + write(Partitions(Kafka.getTopic(topicName))) + ")", Map("content-type"->"application/x-javascript"))
         }
-        case Message(topicName, partition, offset, callback) => callback match {
-          case null => write(KMessage(new String(Kafka.getMessage(topicName, partition.toInt, offset.toLong), StandardCharsets.UTF_8)))
-          case _ => new CamelMessage("/**/" + callback + "(" + write(KMessage(new String(Kafka.getMessage(topicName, partition.toInt, offset.toLong), StandardCharsets.UTF_8))) + ")", Map("content-type"->"application/x-javascript"))
+        case Messages(topicName, partition, offset, callback) => {
+          val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10).map(a => KMessage(new String(a, StandardCharsets.UTF_8))))
+          callback match {
+            case null => write(response)
+            case _ => new CamelMessage("/**/" + callback + "(" + write(response) + ")", Map("content-type"->"application/x-javascript"))
+          }
+        }
+        case Message(topicName, partition, offset, callback) => {
+          val response = Kafka.getMessage(topicName, partition.toInt, offset.toLong).map(a => KMessage(new String(a, StandardCharsets.UTF_8))).head
+          callback match {
+          case null => write(response)
+          case _ => new CamelMessage("/**/" + callback + "(" + write(response) + ")", Map("content-type"->"application/x-javascript"))
+          }
         }
       })
   }

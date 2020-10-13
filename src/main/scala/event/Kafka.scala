@@ -64,16 +64,12 @@ object Kafka {
   }
 
 
-  def getMessage(topic: String, partition: Int, offset: Long): Array[Byte] = {
+  def getMessage(topic: String, partition: Int, offset: Long, count: Int = 1): List[Array[Byte]] = {
     val consumer = createConsumer()
     val tp = new TopicPartition(topic, partition)
     consumer.assign(List(tp).asJava)
     consumer.seek(tp, offset)
     val records = consumer.poll(Duration.ofSeconds(10))
-    val it = records.iterator()
-    if (it.hasNext) {
-      val record = it.next()
-      record.value()
-    } else null
+    records.iterator().asScala.take(count).map(_.value()).toList
   }
 }
