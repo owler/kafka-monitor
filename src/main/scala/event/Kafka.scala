@@ -34,12 +34,8 @@ object Kafka {
   def refreshRepo = {
     val consumer = createConsumer()
     val list = consumer.listTopics().asScala
-    println(list)
-
     val tps: List[TopicPartition] = list.flatMap(t => t._2.asScala.map(partitionInfo => new TopicPartition(t._1, partitionInfo.partition()))).toList
-    println(tps)
     repo ++= getTopicInfo(tps)
-    println(repo)
     consumer.close()
   }
 
