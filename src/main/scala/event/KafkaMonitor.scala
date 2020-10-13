@@ -53,7 +53,7 @@ object KafkaMonitor {
         exchange.getIn.setBody(MessageB(exchange.getIn.getHeader("id", classOf[String]),
           exchange.getIn.getHeader("partition", classOf[String]),
           exchange.getIn.getHeader("offset", classOf[String]),
-          exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
+          exchange.getIn.getHeader("callback", classOf[String])))).to(monitor).convertBodyTo(classOf[Array[Byte]])
         .setHeader("Content-Disposition", simple("attachment;filename=kafka-msg.bin"));
     }
 
