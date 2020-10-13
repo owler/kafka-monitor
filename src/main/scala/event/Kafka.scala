@@ -70,6 +70,6 @@ object Kafka {
     consumer.assign(List(tp).asJava)
     consumer.seek(tp, offset)
     val records = consumer.poll(Duration.ofSeconds(10))
-    records.iterator().asScala.take(count).map(m => KMessage(m.timestamp(), m.value())).toList
+    records.iterator().asScala.take(count).map(m => KMessage(m.offset(), m.timestamp(), m.value())).toList
   }
 }
