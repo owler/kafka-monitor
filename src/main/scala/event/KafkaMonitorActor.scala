@@ -38,7 +38,7 @@ class KafkaMonitorActor extends Actor with ActorLogging {
         }
         case Message(topicName, partition, offset, callback) => {
           val response = Kafka.getMessage(topicName, partition.toInt, offset.toLong).map(a => KMessage(new String(a, StandardCharsets.UTF_8))) match {
-            case Nil => KMessage(null)
+            case Nil => KMessage("")
             case l => l.head
           }
           callback match {
