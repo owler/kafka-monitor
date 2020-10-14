@@ -118,13 +118,13 @@ form, img {
 #content {
 	float: left;
 	padding: 0 20px;
-	width: 970px;
+
 	voice-family: "\"}\""; 
 	voice-family: inherit;
 } 
 
 html>body #content {
-	width: 930px;
+
 }
 #sidebar {
 	float: left;

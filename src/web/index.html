@@ -18,7 +18,7 @@
     <div id="content">
         <style scoped>
 
-                #messageList, #gridTasks {
+            #showMessage, #messageList, #gridTasks {
                 border-collapse: separate;
                 border-spacing: 0;
                 font-size: 12px;
@@ -36,7 +36,7 @@
 
             }
 
-                   #showMessage td, #gridTasks td, #controls td{
+            #showMessage td, #gridTasks td, #controls td{
                 line-height: 23px;
                 padding: 0 6px;
                 color: #3d3d3d;
@@ -60,12 +60,12 @@
 
         <table border="0">
             <tr valign="top">
-                <td rowspan="2">
-                    <div id="gridTasks" style="width: 420px;height:800px"></div>
+                <td rowspan="3">
+                    <div id="gridTasks" style="width: 420px;height:800px;"></div>
                 </td>
                 <td>
                     <table id="controls" border="0">
-                        <tr><td>&nbsp;</td><td>topic</td><td>Partition</td><td>Start</td><td>Selected</td><td>type</td></tr>
+                        <tr><td>&nbsp;</td><td>topic</td><td>Partition</td><td>Start</td><td>Selected</td><td>type</td><td style="width:100%"></td></tr>
                         <tr>
                             <td>
                                 <button id="submit" onclick="search()"/>
@@ -90,17 +90,18 @@
                                 </select>
                             </td>
                         </tr>
-                        <tr>
-                            <td colspan="6" >
-                                <div id="messageList" ></div>
-                            </td>
-                        </tr>
                     </table>
                 </td>
             </tr>
             <tr>
                 <td>
-                    <div id="showMessage" style="height:500px;">
+                    <div id="messageList" ></div>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <div id="showMessage" style="height:480px;">
                     </div>
                 </td>
             </tr>
@@ -192,9 +193,9 @@
             function createMessageGrid() {
                 $("#messageList").kendoGrid({
                     columns:[
-                        {title:"Offset", template:"<span>#= offset #</span><span style='display: none' id='offsetId'>#= offset #</span>"},
-                        {title: "Timestamp", field: "timestamp"},
-                        {title: "Message", field: "message"}
+                        {title: "Offset", width:120, template:"<span>#= offset #</span><span style='display: none' id='offsetId'>#= offset #</span>"},
+                        {title: "Timestamp", width:150, field: "timestamp"},
+                        {title: "Message", field: "message", width:"100%"}
                     ],
                     scrollable: true,
                     dataSource: messageDataSource,
