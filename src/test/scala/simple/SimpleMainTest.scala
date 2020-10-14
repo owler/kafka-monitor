@@ -1,14 +1,13 @@
 package simple
 
-import org.scalatest.funsuite.AnyFunSuite
-import simple.utils.CharmConfigObject
+import event.utils.CharmConfigObject
+import org.scalatest.FunSuite
 
 /**
  */
-class SimpleMainTest extends AnyFunSuite {
+class SimpleMainTest extends FunSuite {
   test("") {
     val conf = CharmConfigObject
     println(conf.getString("env"))
-    println(conf.parse("path"))
   }
 }
