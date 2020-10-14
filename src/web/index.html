@@ -46,6 +46,10 @@
                 font-size: 12px;
             }
 
+            #showMessage td {
+                white-space:pre;
+            }
+
             #messageList td {
                 line-height: 23px;
                 padding: 0 6px;
@@ -54,8 +58,8 @@
                 border-style: solid;
                 border-color: #f4f4f4 #d6d6d6 #d6d6d6 #f4f4f4;
                 font-size: 12px;
-                                overflow:hidden; text-overflow: ellipsis; white-space:nowrap;
-                                }
+                overflow:hidden; text-overflow: ellipsis; white-space:nowrap;
+            }
         </style>
 
         <table border="0">
@@ -85,7 +89,7 @@
                             </td>
                             <td>
                                 <select id="messageTypeComboBox">
-                                    <option>Bytes</option>
+                                    <option>UTF8</option>
                                     <option>RFG</option>
                                 </select>
                             </td>
@@ -129,7 +133,11 @@
             var transportForMessage = {
                 read:{
                     url: function(data) {
-                    return  "http://localhost:8877/topic/" +$("#topic2search").val() + "/partition/" + $("#partition2search").val() + "/offset/" + $("#offset2search").val() + "/limit/10";
+                    return  "http://localhost:8877/topic/" +$("#topic2search").val()
+                        + "/partition/" + $("#partition2search").val()
+                        + "/offset/" + $("#offset2search").val()
+                        + "/msgtype/" + $("#messageTypeComboBox").val()
+                        + "/limit/10";
                     },
                 dataType:"jsonp",
                 cache:false,
@@ -140,7 +148,10 @@
             var transport2ForMessage = {
                 read:{
                     url: function(data) {
-                    return  "http://localhost:8877/topic/" +$("#topic2search").val() + "/partition/" + $("#partition2search").val() + "/offset/" + $("#selectedOffset2search").val();
+                    return  "http://localhost:8877/topic/" + $("#topic2search").val()
+                        + "/partition/" + $("#partition2search").val()
+                        + "/offset/" + $("#selectedOffset2search").val()
+                        + "/msgtype/" + $("#messageTypeComboBox").val();
                     },
                 dataType:"jsonp",
                 cache:false,

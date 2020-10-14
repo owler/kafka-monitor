@@ -1,6 +1,5 @@
 package event
 
-import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 
 import akka.actor.{Actor, ActorLogging}
@@ -30,20 +29,22 @@ class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with Actor
           case null => write(Partitions(Kafka.getTopic(topicName)))
           case _ => new CamelMessage("/**/" + callback + "(" + write(Partitions(Kafka.getTopic(topicName))) + ")", Map("content-type"->"application/x-javascript"))
         }
-        case Messages(topicName, partition, offset, callback) => {
+        case Messages(topicName, partition, offset, msgType, callback) => {
+          val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
           val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10).map(
-            _.map(a => KMessage(a.offset, a.timestamp, new String(a.message, StandardCharsets.UTF_8).substring(0, 500)))).getOrElse(List()))
+            _.map(a => KMessage(a.offset, a.timestamp, decoder.decode(a.message).substring(0, 500)))).getOrElse(List()))
           callback match {
             case null => write(response)
             case _ => new CamelMessage("/**/" + callback + "(" + write(response) + ")", Map("content-type"->"application/x-javascript"))
           }
         }
-        case Message(topicName, partition, offset, callback) => {
+        case Message(topicName, partition, offset, msgType, callback) => {
+          val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
           val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong).map(
-            _.map(a => KMessage(a.offset, a.timestamp, new String(a.message, StandardCharsets.UTF_8)))).getOrElse(List()))
+            _.map(a => KMessage(a.offset, a.timestamp, decoder.decode(a.message)))).getOrElse(List()))
           callback match {
-          case null => write(response)
-          case _ => new CamelMessage("/**/" + callback + "(" + write(response) + ")", Map("content-type"->"application/x-javascript"))
+            case null => write(response)
+            case _ => new CamelMessage("/**/" + callback + "(" + write(response) + ")", Map("content-type"->"application/x-javascript"))
           }
         }
         case MessageB(topicName, partition, offset, callback) => {

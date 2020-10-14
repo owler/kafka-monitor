@@ -5,7 +5,7 @@ import java.util.Date
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.camel.{CamelExtension, _}
 import akka.routing.FromConfig
-import event.ext.{Decoder, PluginManager}
+import event.ext.{PluginManager, Utf8Decoder}
 import event.message.{ListTopics, Message, MessageB, Messages, TopicDetails}
 import event.processor.StaticContentProcessor
 import event.utils.CharmConfigObject
@@ -23,8 +23,8 @@ object KafkaMonitor {
       rest("/topic/")
         .get("/list").to("direct:listTopics")
         .get("/details?filter[filters][0][value]={id}").to("direct:topicDetails")
-        .get("/{id}/partition/{partition}/offset/{offset}/limit/{limit}").to("direct:showMessages")
-        .get("/{id}/partition/{partition}/offset/{offset}").to("direct:showMessage")
+        .get("/{id}/partition/{partition}/offset/{offset}/msgtype/{msgtype}/limit/{limit}").to("direct:showMessages")
+        .get("/{id}/partition/{partition}/offset/{offset}/msgtype/{msgtype}").to("direct:showMessage")
         .get("/{id}/partition/{partition}/offset/{offset}/download").produces("application/octet-stream").to("direct:downloadMessage")
 
       from("jetty:http://0.0.0.0:8081/?matchOnUriPrefix=true").process(staticProcessor)
@@ -41,24 +41,24 @@ object KafkaMonitor {
         exchange.getIn.setBody(Messages(exchange.getIn.getHeader("id", classOf[String]),
           exchange.getIn.getHeader("partition", classOf[String]),
           exchange.getIn.getHeader("offset", classOf[String]),
+          exchange.getIn.getHeader("msgtype", classOf[String]),
           exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
 
       from("direct:showMessage").process((exchange: Exchange) =>
         exchange.getIn.setBody(Message(exchange.getIn.getHeader("id", classOf[String]),
           exchange.getIn.getHeader("partition", classOf[String]),
           exchange.getIn.getHeader("offset", classOf[String]),
+          exchange.getIn.getHeader("msgtype", classOf[String]),
           exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
 
       from("direct:downloadMessage")
         .process((exchange: Exchange) =>
-        exchange.getIn.setBody(MessageB(exchange.getIn.getHeader("id", classOf[String]),
-          exchange.getIn.getHeader("partition", classOf[String]),
-          exchange.getIn.getHeader("offset", classOf[String]),
-          exchange.getIn.getHeader("callback", classOf[String])))).to(monitor).convertBodyTo(classOf[Array[Byte]])
+          exchange.getIn.setBody(MessageB(exchange.getIn.getHeader("id", classOf[String]),
+            exchange.getIn.getHeader("partition", classOf[String]),
+            exchange.getIn.getHeader("offset", classOf[String]),
+            exchange.getIn.getHeader("callback", classOf[String])))).to(monitor).convertBodyTo(classOf[Array[Byte]])
         .setHeader("Content-Disposition", simple("attachment;filename=kafka-msg.bin"));
     }
-
-
   }
 
 
@@ -67,8 +67,8 @@ object KafkaMonitor {
   def main(str: Array[String]) {
     val system = ActorSystem("event-system")
     val camel = CamelExtension(system).context
-
-    val decoders = PluginManager.loadDecoders(conf.getString("plugin.path"))
+    val utfDecoder = new Utf8Decoder();
+    val decoders = PluginManager.loadDecoders(conf.getString("plugin.path")) + (utfDecoder.getName() -> utfDecoder)
     val monitor = system.actorOf(Props(classOf[KafkaMonitorActor], decoders).withRouter(FromConfig()), "kafka-monitor")
 
     camel.addRoutes(new CustomRouteBuilder(system, monitor))

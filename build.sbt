@@ -54,7 +54,8 @@ pack := {
             IO.copyDirectory(file(".") / "src/bin", dist / "bin")
             IO.copyDirectory(file(".") / "src/main/resources/", dist / "conf")
             IO.copyDirectory(file(".") / "src/web/", dist / "web")
+            IO.copyDirectory(file(".") / "src/plugins/", dist / "plugins")
+            IO.createDirectory(dist / "lib/ext")
             IO.copyFile(jar, dist / "lib" / jar.getName)
     }
 }
-
