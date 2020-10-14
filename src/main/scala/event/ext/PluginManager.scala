@@ -4,9 +4,13 @@ import java.io.File
 import java.net.{URL, URLClassLoader}
 import java.util.jar.JarFile
 
+import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
+
 import scala.collection.JavaConverters._
 
 object PluginManager {
+  val log = Logger(LoggerFactory.getLogger(this.getClass))
   def loadDecoders(path: String): Map[String, Decoder] = {
     val dir = new File(path)
     val files = if (dir.exists && dir.isDirectory) {
@@ -19,17 +23,18 @@ object PluginManager {
 
   def processFile(file: File): Map[String, Decoder] = {
     val classes = getClassNames(file.getAbsolutePath)
-    println(classes)
+    log.info("Processing plugins: " + classes)
     val loader = new URLClassLoader(Array(new URL("file:" + file.getAbsolutePath)), this.getClass.getClassLoader)
     classes.map { clazz => {
       try {
-        println(clazz)
+        log.info("Trying instantiate class: " + clazz)
         val res = loader.loadClass(clazz)
         if (classOf[Decoder].isAssignableFrom(res)) {
-          val decoder = res.newInstance().asInstanceOf[Decoder]; Some(decoder.getName() -> decoder);
+          val decoder = res.getConstructor().newInstance().asInstanceOf[Decoder]
+          Some(decoder.getName() -> decoder)
         } else  None
       } catch {
-        case e: Throwable => println(e); None
+        case e: Throwable => log.warn("Failed to instantiate decoder: " + e); None
       }
     }}.filter(_.isDefined).map(_.get).toMap
   }
