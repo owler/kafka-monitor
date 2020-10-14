@@ -3,6 +3,7 @@ package event
 import java.time.Duration
 import java.util.Properties
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 import event.json.{KMessage, Partition, Topic}
 import event.utils.CharmConfigObject
@@ -19,8 +20,11 @@ case class TopicMetaData(topic: String, metadata: mutable.SortedMap[Int, (Long, 
 object Kafka {
   val conf = CharmConfigObject
   val BOOTSTRAP_SERVERS = conf.getString("kafka.brokers")
+  val cacheTime = conf.getConfig.getLong("kafka.cacheTime")
   var repo = new ConcurrentHashMap[String, TopicMetaData]().asScala
+  var repoRefreshTimestamp = new AtomicLong(0)
   refreshRepo
+
 
   private def createConsumer(props: Properties = new Properties()) = {
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS)
@@ -32,19 +36,26 @@ object Kafka {
   }
 
   def refreshRepo = {
-    val consumer = createConsumer()
-    val list = consumer.listTopics().asScala
-    println(list)
+    repo.synchronized {
+      if (rotten()) {
+        val consumer = createConsumer()
+        val list = consumer.listTopics().asScala
+        val tps: List[TopicPartition] = list.flatMap(t => t._2.asScala.map(partitionInfo => new TopicPartition(t._1, partitionInfo.partition()))).toList
+        repo ++= getTopicInfo(tps, consumer)
+        repoRefreshTimestamp.set(System.currentTimeMillis())
+        consumer.close()
+      }
+    }
+  }
 
-    val tps: List[TopicPartition] = list.flatMap(t => t._2.asScala.map(partitionInfo => new TopicPartition(t._1, partitionInfo.partition()))).toList
-    println(tps)
-    repo ++= getTopicInfo(tps)
-    println(repo)
-    consumer.close()
+  def rotten(): Boolean = {
+    repoRefreshTimestamp.get() + cacheTime < System.currentTimeMillis()
   }
 
   def getTopics: List[Topic] = {
-    refreshRepo
+    if(rotten()) {
+      refreshRepo
+    }
     repo.values.toList.sortBy(t => t.topic).map(t => Topic(t.topic))
   }
 
@@ -58,7 +69,7 @@ object Kafka {
       mutable.SortedMap(tuples.toSeq: _*)
   }
 
-  def getTopicInfo(tp: List[TopicPartition], consumer: KafkaConsumer[Array[Byte], Array[Byte]] = createConsumer()): Map[String, TopicMetaData] = {
+  def getTopicInfo(tp: List[TopicPartition], consumer: KafkaConsumer[Array[Byte], Array[Byte]]): Map[String, TopicMetaData] = {
     val startOffsets = consumer.beginningOffsets(tp.asJava).asScala
     val endOffsets = consumer.endOffsets(tp.asJava).asScala
     startOffsets.groupBy(_._1.topic()).map(x => x._1 -> TopicMetaData(x._1, x._2.map(y => y._1.partition() -> (y._2.toLong, endOffsets(y._1).toLong)).toSortedMap))
@@ -67,14 +78,16 @@ object Kafka {
 
   def getMessage(topic: String, partition: Int, offset: Long, count: Int = 1): Option[List[KMessage[Array[Byte]]]] = {
     repo.get(topic).flatMap(
-      _.metadata.get(partition).flatMap(offsets => if (offsets._1 != offsets._2 && offset < offsets._2) Some(offset) else None)
-    ) map { verifyedOffset =>
+      _.metadata.get(partition).flatMap(offsets => if (offsets._1 != offsets._2 && offset <= offsets._2) Some(offset) else None)
+    ) map { verifiedOffset =>
       val consumer = createConsumer()
       val tp = new TopicPartition(topic, partition)
       consumer.assign(List(tp).asJava)
-      consumer.seek(tp, verifyedOffset)
+      consumer.seek(tp, verifiedOffset)
       val records = consumer.poll(Duration.ofSeconds(10))
-      records.iterator().asScala.take(count).map(m => KMessage(m.offset(), m.timestamp(), m.value())).toList
+      val resp = records.iterator().asScala.take(count).map(m => KMessage(m.offset(), m.timestamp(), m.value())).toList
+      consumer.close()
+      resp
     }
   }
 }
