@@ -5,6 +5,7 @@ import java.util.Date
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.camel.{CamelExtension, _}
 import akka.routing.FromConfig
+import event.ext.{Decoder, PluginManager}
 import event.message.{ListTopics, Message, MessageB, Messages, TopicDetails}
 import event.processor.StaticContentProcessor
 import event.utils.CharmConfigObject
@@ -66,7 +67,9 @@ object KafkaMonitor {
   def main(str: Array[String]) {
     val system = ActorSystem("event-system")
     val camel = CamelExtension(system).context
-    val monitor = system.actorOf(Props(classOf[KafkaMonitorActor]).withRouter(FromConfig()), "kafka-monitor")
+
+    val decoders = PluginManager.loadDecoders(conf.getString("plugin.path"))
+    val monitor = system.actorOf(Props(classOf[KafkaMonitorActor], decoders).withRouter(FromConfig()), "kafka-monitor")
 
     camel.addRoutes(new CustomRouteBuilder(system, monitor))
     println("KafkaMonitor Service startup in " + new Date())

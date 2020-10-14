@@ -11,7 +11,7 @@ import org.json4s.native.Serialization.write
 import org.json4s.DefaultFormats
 
 
-class KafkaMonitorActor extends Actor with ActorLogging {
+class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with ActorLogging {
   val dataformat = "yyyy-MM-dd HH:mm:ss.SSS z"
   implicit val formats = new DefaultFormats {
     override def dateFormatter = new SimpleDateFormat(dataformat)
