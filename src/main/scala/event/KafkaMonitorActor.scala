@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat
 
 import akka.actor.{Actor, ActorLogging}
 import akka.camel.CamelMessage
+import event.ext.Decoder
 import event.json.{KMessage, KMessages, Partitions, Topics}
 import event.message.{ListTopics, Message, MessageB, Messages, TopicDetails}
 import org.json4s.native.Serialization.write
