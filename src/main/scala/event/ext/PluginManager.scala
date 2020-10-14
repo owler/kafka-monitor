@@ -8,9 +8,9 @@ import scala.collection.JavaConverters._
 
 object PluginManager {
   def loadDecoders(path: String): Map[String, Decoder] = {
-    val d = new File(path)
-    val files = if (d.exists && d.isDirectory) {
-      d.listFiles.filter(f => f.isFile && f.getName.endsWith(".jar")).toList
+    val dir = new File(path)
+    val files = if (dir.exists && dir.isDirectory) {
+      dir.listFiles.filter(f => f.isFile && f.getName.endsWith(".jar")).toList
     } else {
       List[File]()
     }
@@ -18,10 +18,10 @@ object PluginManager {
   }
 
   def processFile(file: File): Map[String, Decoder] = {
-    val l = getClassNames(file.getAbsolutePath)
-    println(l)
+    val classes = getClassNames(file.getAbsolutePath)
+    println(classes)
     val loader = new URLClassLoader(Array(new URL("file:" + file.getAbsolutePath)), this.getClass.getClassLoader)
-    l.map { clazz => {
+    classes.map { clazz => {
       try {
         println(clazz)
         val res = loader.loadClass(clazz)
