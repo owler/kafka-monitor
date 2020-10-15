@@ -39,7 +39,7 @@
             #showMessage td, #gridTasks td, #controls td{
                 line-height: 23px;
                 padding: 0 6px;
-                color: #0d3d0d;
+                color: #0d2d2d;
                 border-width: 0px;
                 border-style: solid;
                 border-color: #f4f4f4 #d6d6d6 #d6d6d6 #f4f4f4;
@@ -48,20 +48,28 @@
 
             #showMessage td {
                 white-space:pre;
-                color: #00220d;
+                color: #002200;
                 font-weight: bold;
             }
 
             #messageList td {
                 line-height: 23px;
                 padding: 0 6px;
-                color: #3d3d3d;
+                color: #0d1d1d;
                 border-width: 0px;
                 border-style: solid;
                 border-color: #f4f4f4 #d6d6d6 #d6d6d6 #f4f4f4;
                 font-size: 12px;
                 overflow:hidden; text-overflow: ellipsis; white-space:nowrap;
             }
+            a.a_download:hover {
+                background-color: #f4f4f4;
+                cursor:pointer;
+            }
+            a.a_download {
+                text-decoration: underline;
+            }
+
         </style>
 
         <table border="0">
@@ -69,10 +77,13 @@
                 <td rowspan="3">
                     <div id="gridTasks" style="width: 420px;height:800px;"></div>
                 </td>
-                <td rowspan="3">&nbsp;</td>
+                <td rowspan="3">
+                    &nbsp;
+                </td>
+
                 <td>
                     <table id="controls" border="0">
-                        <tr><td>&nbsp;</td><td>topic</td><td>partition</td><td>start from</td><td>selected</td><td>type</td><td style="width:100%"></td></tr>
+                        <tr><td>&nbsp;</td><td>topic</td><td>partition</td><td>start from</td><td>selected offset</td><td>type</td><td style="width:100%"></td></tr>
                         <tr>
                             <td>
                                 <button id="submit" onclick="search()"/>
@@ -136,29 +147,29 @@
             var transportForMessage = {
                 read:{
                     url: function(data) {
-                    return  "http://localhost:8877/topic/" +$("#topic2search").val()
-                        + "/partition/" + $("#partition2search").val()
-                        + "/offset/" + $("#offset2search").val()
-                        + "/msgtype/" + $("#messageTypeComboBox").val()
-                        + "/limit/10";
+                        return  "http://localhost:8877/topic/" +$("#topic2search").val()
+                            + "/partition/" + $("#partition2search").val()
+                            + "/offset/" + $("#offset2search").val()
+                            + "/msgtype/" + $("#messageTypeComboBox").val()
+                            + "/limit/10";
                     },
-                dataType:"jsonp",
-                cache:false,
-                jsonp: "callback"
+                    dataType:"jsonp",
+                    cache:false,
+                    jsonp: "callback"
                 }
             };
 
             var transport2ForMessage = {
                 read:{
                     url: function(data) {
-                    return  "http://localhost:8877/topic/" + $("#topic2search").val()
-                        + "/partition/" + $("#partition2search").val()
-                        + "/offset/" + $("#selectedOffset2search").val()
-                        + "/msgtype/" + $("#messageTypeComboBox").val();
+                        return  "http://localhost:8877/topic/" + $("#topic2search").val()
+                            + "/partition/" + $("#partition2search").val()
+                            + "/offset/" + $("#selectedOffset2search").val()
+                            + "/msgtype/" + $("#messageTypeComboBox").val();
                     },
-                dataType:"jsonp",
-                cache:false,
-                jsonp: "callback"
+                    dataType:"jsonp",
+                    cache:false,
+                    jsonp: "callback"
                 }
             };
 
@@ -199,9 +210,16 @@
                     dataSource: tasksDataSource,
                     detailInit: detailInit,
                     dataBound: function() {
-                     // this.expandRow(this.tbody.find("tr.k-master-row").first());
+                        // this.expandRow(this.tbody.find("tr.k-master-row").first());
                     },
                 });
+            }
+
+            function downloadMsg(id) {
+                return  "http://localhost:8877/topic/" + $("#topic2search").val()
+                    + "/partition/" + $("#partition2search").val()
+                    + "/offset/" + id
+                    + "/download";
             }
 
             function createMessageGrid() {
@@ -209,29 +227,30 @@
                     columns:[
                         {title: "Offset", width:70, template:"<span>#= offset #</span><span style='display: none' id='offsetId'>#= offset #</span>"},
                         {title: "Timestamp", width:220, field: "timestamp"},
-                        {title: "Message", field: "message", width:"100%"}
+                        {title: "Message", field: "message", width:"100%"},
+                        {title: "Download", width:110, template:"<a class='a_download' onclick='location.href=downloadMsg(#= offset #)'>#= Math.round(size/100)/10 # Kb</a>"}
                     ],
                     scrollable: true,
                     dataSource: messageDataSource,
-                                    dataBound:  injectMessageRowEvent
+                    dataBound:  injectMessageRowEvent
                 });
             }
 
 
             $(document).ready(function() {
-                        createGrid();
-                        createMessageGrid();
+                createGrid();
+                createMessageGrid();
             });
 
             function injectMessageRowEvent() {
                 var tr = $('#messageList').data("kendoGrid").tbody.find(">tr");
                 tr.click(function (e) {
-                                                var topic = $("#topic2search").val;
-                                        var partition = $("#partition2search").val;
-                                        var offset = $(this).find('#offsetId').text();
-                                                $("#selectedOffset2search").val(offset);
-                                                createShowGrid();
-                        message2DataSource.read();
+                    var topic = $("#topic2search").val;
+                    var partition = $("#partition2search").val;
+                    var offset = $(this).find('#offsetId').text();
+                    $("#selectedOffset2search").val(offset);
+                    createShowGrid();
+                    message2DataSource.read();
                 });
                 tr.mouseover(function () {
                     $(this).css("background-color", "#9BBB38");
@@ -256,9 +275,9 @@
                 var tr = $('.k-detail-cell tbody tr');
                 tr.click(function () {
                     var  id = $(this).find('#id').text().split(":");
-                            $("#topic2search").val(id[0]);
-                            $("#partition2search").val(id[1]);
-                            $("#offset2search").val(id[2]);
+                    $("#topic2search").val(id[0]);
+                    $("#partition2search").val(id[1]);
+                    $("#offset2search").val(id[2]);
                     $("#showMessage").empty();
                     search();
                 });
@@ -275,9 +294,9 @@
                     dataSource: {
                         type: "jsonp",
                         transport: transportDetails,
-                    schema: {
-                        data: "partitions"
-                    },
+                        schema: {
+                            data: "partitions"
+                        },
 
                         serverPaging: false,
                         serverSorting: false,
@@ -288,7 +307,7 @@
                     sortable: true,
                     pageable: false,
                     columns: [
-                        { title:"partition", width:27, template:"<span>#= partition #</span><span style='display: none' id='id'>#= topic #:#= partition #:#= start #</span>"},
+                        { title: "partition", width:27, template:"<span>#= partition #</span><span style='display: none' id='id'>#= topic #:#= partition #:#= start #</span>"},
                         { field: "start", title:"start offset", width: "50px" },
                         { field: "end", title:"end offset", width:"50px" }
                     ],
@@ -299,7 +318,7 @@
             function search(e) {
                 messageDataSource.read();
             }
-    </script>
+        </script>
     </div>
 </div>
 </body>
