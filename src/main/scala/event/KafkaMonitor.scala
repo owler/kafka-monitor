@@ -19,7 +19,7 @@ object KafkaMonitor {
 
   class CustomRouteBuilder(system: ActorSystem, monitor: ActorRef) extends RouteBuilder {
     override def configure(): Unit = {
-      restConfiguration.component("jetty").host("localhost").port(8877).bindingMode(RestBindingMode.auto)
+      restConfiguration.component("jetty").host("localhost").port(conf.getConfig.getInt("rest.port")).bindingMode(RestBindingMode.auto)
       rest("/topic/")
         .get("/list").to("direct:listTopics")
         .get("/details?filter[filters][0][value]={id}").to("direct:topicDetails")
