@@ -32,7 +32,7 @@ class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with Actor
         case Messages(topicName, partition, offset, msgType, callback) => {
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
           val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10).map(
-            _.map(a => KMessage(a.offset, a.timestamp, decoder.decode(a.message).substring(0, 500), a.size))).getOrElse(List()))
+            _.map(a => KMessage(a.offset, a.timestamp, decoder.decode(a.message).take(500), a.size))).getOrElse(List()))
           callback match {
             case null => write(response)
             case _ => new CamelMessage("/**/" + callback + "(" + write(response) + ")", Map("content-type"->"application/x-javascript"))
@@ -41,7 +41,10 @@ class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with Actor
         case Message(topicName, partition, offset, msgType, callback) => {
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
           val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong).map(
-            _.map(a => KMessage(a.offset, a.timestamp, decoder.decode(a.message), a.size))).getOrElse(List()))
+            _.map(a => {
+              val decoded = decoder.decode(a.message)
+              val truncStr = if (decoded.length > 5000) "/n... message truncated" else ""
+              KMessage(a.offset, a.timestamp, decoded.take(5000) + truncStr, a.size)})).getOrElse(List()))
           callback match {
             case null => write(response)
             case _ => new CamelMessage("/**/" + callback + "(" + write(response) + ")", Map("content-type"->"application/x-javascript"))
