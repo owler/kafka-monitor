@@ -65,7 +65,8 @@
                 overflow:hidden; text-overflow: ellipsis; white-space:nowrap;
             }
             a.a_download:hover {
-                background-color: #f4f4f4;
+                background-color: #9BBB38;
+                                color: blue;
                 cursor:pointer;
             }
             a.a_download {
@@ -199,7 +200,6 @@
                 },
                change: function(e) {
                                     var data = this.data();
-                                   console.log(data[0].message);
                                    $("#showMessage").text(data[0].message)
                        }
             });
@@ -239,7 +239,8 @@
                         {title: "Offset", width:70, template:"<span>#= offset #</span><span style='display: none' id='offsetId'>#= offset #</span>"},
                         {title: "Timestamp", width:220, field: "timestamp"},
                         {title: "Message", field: "message", width:"100%"},
-                        {title: "Download", width:110, template:"<a class='a_download' onclick='location.href=downloadMsg(#= offset #)'>#= Math.round(size/100)/10 # Kb</a><a class='a_download' onclick='location.href=downloadMsgForType(#= offset # , \"#= msgtype #\")'>#= Math.round(msgsize/100)/10 # Kb</a>"}
+                        {title: "bytes[]", width:90, template:"<a class='a_download' onclick='location.href=downloadMsg(#= offset #)'>#= Math.round(size/100)/10 # Kb</a>"},
+                        {title: "Download", width:130, template:"#= msgtype #:<a class='a_download' onclick='location.href=downloadMsgForType(#= offset # , \"#= msgtype #\")'>#= Math.round(msgsize/100)/10 # Kb</a>"}
                     ],
                     scrollable: true,
                     dataSource: messageDataSource,
