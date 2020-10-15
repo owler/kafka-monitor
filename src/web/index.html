@@ -18,13 +18,13 @@
     <div id="content">
         <style scoped>
 
-            #showMessage, #messageList, #gridTasks {
+            #messageList, #gridTasks {
                 border-collapse: separate;
                 border-spacing: 0;
                 font-size: 12px;
             }
 
-            #messageList th, #gridTasks th, #showMessage th {
+            #messageList th, #gridTasks th {
                 padding: 6px 6px;
                 color: #333;
                 text-align: left;
@@ -36,7 +36,7 @@
 
             }
 
-            #showMessage td, #gridTasks td, #controls td{
+            #gridTasks td, #controls td{
                 line-height: 23px;
                 padding: 0 6px;
                 color: #0d2d2d;
@@ -46,10 +46,12 @@
                 font-size: 12px;
             }
 
-            #showMessage td {
+            #showMessage {
                 white-space:pre;
                 color: #002200;
+                font-size: 12px;
                 font-weight: bold;
+                overflow:scroll; text-overflow: string;
             }
 
             #messageList td {
@@ -63,7 +65,7 @@
                 overflow:hidden; text-overflow: ellipsis; white-space:nowrap;
             }
             a.a_download:hover {
-                color: blue;
+                background-color: #f4f4f4;
                 cursor:pointer;
             }
             a.a_download {
@@ -71,7 +73,6 @@
             }
 
         </style>
-
         <table border="0">
             <tr valign="top">
                 <td rowspan="3">
@@ -119,11 +120,11 @@
 
             <tr>
                 <td>
-                    <div id="showMessage" style="height:480px;">
-                    </div>
+                    <div id="showMessage" style="height:480px; width:1350px;"/>
                 </td>
             </tr>
         </table>
+
         <script>
 
             var transport = {
@@ -195,8 +196,12 @@
                 //data: data,
                 schema: {
                     data: "messages"
-                }
-
+                },
+               change: function(e) {
+                                    var data = this.data();
+                                   console.log(data[0].message);
+                                   $("#showMessage").text(data[0].message)
+                       }
             });
 
 
@@ -249,7 +254,7 @@
                     var partition = $("#partition2search").val;
                     var offset = $(this).find('#offsetId').text();
                     $("#selectedOffset2search").val(offset);
-                    createShowGrid();
+                    //createShowGrid();
                     message2DataSource.read();
                 });
                 tr.mouseover(function () {
@@ -265,7 +270,7 @@
                     columns:[
                         {title: "Message", field: "message"}
                     ],
-                    scrollable: true,
+                    scrollable: false,
                     dataSource: message2DataSource
                 });
             }
