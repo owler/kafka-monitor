@@ -28,7 +28,7 @@ object KafkaMonitor {
         .get("/{id}/partition/{partition}/offset/{offset}/download").produces("application/octet-stream").to("direct:downloadMessage")
         .get("/{id}/partition/{partition}/offset/{offset}/msgtype/{msgtype}/download").produces("application/octet-stream").to("direct:downloadMessageForType")
 
-      from("jetty:http://0.0.0.0:8081/?matchOnUriPrefix=true").process(staticProcessor)
+      from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/?matchOnUriPrefix=true").process(staticProcessor)
       from("direct:listTopics").process((exchange: Exchange) =>
         exchange.getIn.setBody(ListTopics(exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
 
