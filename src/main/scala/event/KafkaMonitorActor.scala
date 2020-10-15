@@ -6,7 +6,7 @@ import akka.actor.{Actor, ActorLogging}
 import akka.camel.CamelMessage
 import event.ext.Decoder
 import event.json.{KMessage, KMessages, Partitions, Topics}
-import event.message.{ListTopics, Message, MessageB, Messages, TopicDetails}
+import event.message.{ListTopics, Message, MessageB, MessageT, Messages, TopicDetails}
 import org.json4s.native.Serialization.write
 import org.json4s.DefaultFormats
 
@@ -32,7 +32,10 @@ class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with Actor
         case Messages(topicName, partition, offset, msgType, callback) => {
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
           val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10).map(
-            _.map(a => KMessage(a.offset, a.timestamp, decoder.decode(a.message).take(500), a.size))).getOrElse(List()))
+            _.map(a => {
+              val decoded = decoder.decode(a.message)
+              KMessage(a.offset, a.timestamp, decoded.take(500), a.size, decoder.getName(), decoded.length)
+            })).getOrElse(List()))
           callback match {
             case null => write(response)
             case _ => new CamelMessage("/**/" + callback + "(" + write(response) + ")", Map("content-type"->"application/x-javascript"))
@@ -44,19 +47,25 @@ class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with Actor
             _.map(a => {
               val decoded = decoder.decode(a.message)
               val truncStr = if (decoded.length > 5000) "/n... message truncated" else ""
-              KMessage(a.offset, a.timestamp, decoded.take(5000) + truncStr, a.size)})).getOrElse(List()))
+              KMessage(a.offset, a.timestamp, decoded.take(5000) + truncStr, a.size, decoder.getName(), decoded.length)})).getOrElse(List()))
           callback match {
             case null => write(response)
             case _ => new CamelMessage("/**/" + callback + "(" + write(response) + ")", Map("content-type"->"application/x-javascript"))
           }
         }
-        case MessageB(topicName, partition, offset, callback) => {
+        case MessageB(topicName, partition, offset, _) => {
           Kafka.getMessage(topicName, partition.toInt, offset.toLong) match {
             case None => Array[Byte]()
             case Some(l) => l.head.message
           }
         }
-
+        case MessageT(topicName, partition, offset, msgType, _) => {
+          val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
+          Kafka.getMessage(topicName, partition.toInt, offset.toLong) match {
+            case None => ""
+            case Some(l) => decoder.decode(l.head.message)
+          }
+        }
       })
   }
 }

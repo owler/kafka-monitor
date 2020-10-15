@@ -6,7 +6,7 @@ import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.camel.{CamelExtension, _}
 import akka.routing.FromConfig
 import event.ext.{PluginManager, Utf8Decoder}
-import event.message.{ListTopics, Message, MessageB, Messages, TopicDetails}
+import event.message.{ListTopics, Message, MessageB, MessageT, Messages, TopicDetails}
 import event.processor.StaticContentProcessor
 import event.utils.CharmConfigObject
 import org.apache.camel.Exchange
@@ -26,6 +26,7 @@ object KafkaMonitor {
         .get("/{id}/partition/{partition}/offset/{offset}/msgtype/{msgtype}/limit/{limit}").to("direct:showMessages")
         .get("/{id}/partition/{partition}/offset/{offset}/msgtype/{msgtype}").to("direct:showMessage")
         .get("/{id}/partition/{partition}/offset/{offset}/download").produces("application/octet-stream").to("direct:downloadMessage")
+        .get("/{id}/partition/{partition}/offset/{offset}/msgtype/{msgtype}/download").produces("application/octet-stream").to("direct:downloadMessageForType")
 
       from("jetty:http://0.0.0.0:8081/?matchOnUriPrefix=true").process(staticProcessor)
       from("direct:listTopics").process((exchange: Exchange) =>
@@ -58,6 +59,16 @@ object KafkaMonitor {
             exchange.getIn.getHeader("offset", classOf[String]),
             exchange.getIn.getHeader("callback", classOf[String])))).to(monitor).convertBodyTo(classOf[Array[Byte]])
         .setHeader("Content-Disposition", simple("attachment;filename=kafka-msg.bin"));
+
+      from("direct:downloadMessageForType")
+        .process((exchange: Exchange) =>
+          exchange.getIn.setBody(MessageT(exchange.getIn.getHeader("id", classOf[String]),
+            exchange.getIn.getHeader("partition", classOf[String]),
+            exchange.getIn.getHeader("offset", classOf[String]),
+            exchange.getIn.getHeader("msgType", classOf[String]),
+            exchange.getIn.getHeader("callback", classOf[String])))).to(monitor).convertBodyTo(classOf[Array[Byte]])
+        .setHeader("Content-Disposition", simple("attachment;filename=kafka-msg.txt"));
+
     }
   }
 

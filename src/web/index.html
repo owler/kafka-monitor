@@ -226,14 +226,20 @@
                     + "/offset/" + id
                     + "/download";
             }
-
+            function downloadMsgForType(id, msgType) {
+                return  "http://localhost:8877/topic/" + $("#topic2search").val()
+                    + "/partition/" + $("#partition2search").val()
+                    + "/offset/" + id
+                    + "/msgtype/" + msgType
+                    + "/download";
+            }
             function createMessageGrid() {
                 $("#messageList").kendoGrid({
                     columns:[
                         {title: "Offset", width:70, template:"<span>#= offset #</span><span style='display: none' id='offsetId'>#= offset #</span>"},
                         {title: "Timestamp", width:220, field: "timestamp"},
                         {title: "Message", field: "message", width:"100%"},
-                        {title: "Download", width:110, template:"<a class='a_download' onclick='location.href=downloadMsg(#= offset #)'>#= Math.round(size/100)/10 # Kb</a>"}
+                        {title: "Download", width:110, template:"<a class='a_download' onclick='location.href=downloadMsg(#= offset #)'>#= Math.round(size/100)/10 # Kb</a><a class='a_download' onclick='location.href=downloadMsgForType(#= offset # , "#= msgtype #")'>#= Math.round(msgsize/100)/10 # Kb</a>"}
                     ],
                     scrollable: true,
                     dataSource: messageDataSource,
