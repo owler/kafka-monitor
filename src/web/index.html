@@ -72,7 +72,7 @@
                 <td rowspan="3">&nbsp;</td>
                 <td>
                     <table id="controls" border="0">
-                        <tr><td>&nbsp;</td><td>topic</td><td>Partition</td><td>Start</td><td>Selected</td><td>type</td><td style="width:100%"></td></tr>
+                        <tr><td>&nbsp;</td><td>topic</td><td>partition</td><td>start from</td><td>selected</td><td>type</td><td style="width:100%"></td></tr>
                         <tr>
                             <td>
                                 <button id="submit" onclick="search()"/>
@@ -193,7 +193,7 @@
             function createGrid() {
                 $("#gridTasks").kendoGrid({
                     columns:[
-                        {title: "Topic name", field: "topic"}
+                        {title: "Topics", field: "topic"}
                     ],
                     scrollable: true,
                     dataSource: tasksDataSource,
@@ -289,8 +289,8 @@
                     pageable: false,
                     columns: [
                         { title:"partition", width:27, template:"<span>#= partition #</span><span style='display: none' id='id'>#= topic #:#= partition #:#= start #</span>"},
-                        { field: "start", title:"Start", width: "50px" },
-                        { field: "end", title:"End", width:"50px" }
+                        { field: "start", title:"start offset", width: "50px" },
+                        { field: "end", title:"end offset", width:"50px" }
                     ],
                     dataBound:injectDetailRowEvent
                 });
