@@ -1,7 +1,7 @@
 package event
 
 import java.time.Duration
-import java.util.Properties
+import java.util.{Date, Properties}
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
@@ -85,7 +85,7 @@ object Kafka {
       consumer.assign(List(tp).asJava)
       consumer.seek(tp, verifiedOffset)
       val records = consumer.poll(Duration.ofSeconds(10))
-      val resp = records.iterator().asScala.take(count).map(m => KMessage(m.offset(), m.timestamp(), m.value())).toList
+      val resp = records.iterator().asScala.take(count).map(m => KMessage(m.offset(), new Date(m.timestamp()), m.value())).toList
       consumer.close()
       resp
     }
