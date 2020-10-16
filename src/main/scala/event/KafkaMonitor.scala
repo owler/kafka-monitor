@@ -27,6 +27,7 @@ object KafkaMonitor {
               .enableCORS(true) // <-- Important
               .corsAllowCredentials(true) // <-- Important
               .corsHeaderProperty("Access-Control-Allow-Origin","*")
+         from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/topic/?matchOnUriPrefix=true").process(redirectProcessor)
       */
       rest("/topic/")
         .get("/list").to("direct:listTopics")
@@ -36,7 +37,6 @@ object KafkaMonitor {
         .get("/{id}/partition/{partition}/offset/{offset}/download").produces("application/octet-stream").to("direct:downloadMessage")
         .get("/{id}/partition/{partition}/offset/{offset}/msgtype/{msgtype}/download").produces("application/octet-stream").to("direct:downloadMessageForType")
 
-      //from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/topic/?matchOnUriPrefix=true").process(redirectProcessor)
       from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/topic/?matchOnUriPrefix=true").to("http://localhost:8877/topic?bridgeEndpoint=true")
       from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/?matchOnUriPrefix=true").process(staticProcessor)
       from("direct:listTopics").process((exchange: Exchange) =>
