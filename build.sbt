@@ -32,6 +32,7 @@ libraryDependencies += "org.scalatest" % "scalatest_2.12" % "3.0.4"
 libraryDependencies += "com.typesafe.akka" %% "akka-actor" % akkaVersion
 libraryDependencies += "com.typesafe.akka" %% "akka-camel" % akkaVersion
 libraryDependencies += "org.apache.camel" % "camel-jetty" % camelVersion
+libraryDependencies += "org.apache.camel" % "camel-http" % camelVersion
 libraryDependencies += "org.apache.camel" % "camel-stream" % camelVersion
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.13"
 libraryDependencies += "org.json4s" %% "json4s-jackson" % "3.6.10"
