@@ -46,7 +46,9 @@ class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with Actor
           val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong).map(
             _.map(a => {
               val decoded = decoder.decode(a.message)
-              val truncStr = if (decoded.length > 5000) "/n... message truncated" else ""
+              val truncStr = if (decoded.length > 5000)
+                """
+                  |... message truncated""".stripMargin else ""
               KMessage(a.offset, a.timestamp, decoded.take(5000) + truncStr, a.size, decoder.getName(), decoded.length)})).getOrElse(List()))
           callback match {
             case null => write(response)
