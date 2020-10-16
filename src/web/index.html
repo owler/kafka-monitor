@@ -130,7 +130,7 @@
 
             var transport = {
                 read: {
-                    url: "http://localhost:8877/topic/list",
+                    url: "/topic/list",
                     dataType: "jsonp",
                     jsonp: "callback",
                     cache: false
@@ -139,7 +139,7 @@
 
             var transportDetails = {
                 read: {
-                    url: "http://localhost:8877/topic/details",
+                    url: "/topic/details",
                     dataType: "jsonp",
                     jsonp: "callback",
                     cache: false
@@ -149,7 +149,7 @@
             var transportForMessage = {
                 read:{
                     url: function(data) {
-                        return  "http://localhost:8877/topic/" +$("#topic2search").val()
+                        return  "/topic/" +$("#topic2search").val()
                             + "/partition/" + $("#partition2search").val()
                             + "/offset/" + $("#offset2search").val()
                             + "/msgtype/" + $("#messageTypeComboBox").val()
@@ -164,7 +164,7 @@
             var transport2ForMessage = {
                 read:{
                     url: function(data) {
-                        return  "http://localhost:8877/topic/" + $("#topic2search").val()
+                        return  "/topic/" + $("#topic2search").val()
                             + "/partition/" + $("#partition2search").val()
                             + "/offset/" + $("#selectedOffset2search").val()
                             + "/msgtype/" + $("#messageTypeComboBox").val();
@@ -221,13 +221,13 @@
             }
 
             function downloadMsg(id) {
-                return  "http://localhost:8877/topic/" + $("#topic2search").val()
+                return  "/topic/" + $("#topic2search").val()
                     + "/partition/" + $("#partition2search").val()
                     + "/offset/" + id
                     + "/download";
             }
             function downloadMsgForType(id, msgType) {
-                return  "http://localhost:8877/topic/" + $("#topic2search").val()
+                return  "/topic/" + $("#topic2search").val()
                     + "/partition/" + $("#partition2search").val()
                     + "/offset/" + id
                     + "/msgtype/" + msgType
