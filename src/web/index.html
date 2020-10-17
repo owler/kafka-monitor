@@ -203,9 +203,11 @@
                     data: "messages"
                 },
                change: function(e) {
-                                    var data = this.data();
-                                   $("#showMessage").text(data[0].message)
+                       var data = this.data();
+                       if (data.length > 0) {
+                            $("#showMessage").text(data[0].message)
                        }
+               }
             });
 
 
@@ -264,7 +266,11 @@
              $("#messageTypeComboBox").kendoDropDownList({
                         dataTextField: "msgtype",
                         dataValueField: "msgtype",
-                        dataSource: msgTypeDataSource
+                        dataSource: msgTypeDataSource,
+                        change: function(e) {
+                            messageDataSource.read();
+                            message2DataSource.read();
+                        }
                     });
             }
 
