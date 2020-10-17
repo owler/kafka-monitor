@@ -1,5 +1,6 @@
 package event
 
+import java.io
 import java.text.SimpleDateFormat
 
 import akka.actor.{Actor, ActorLogging}
@@ -23,49 +24,28 @@ class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with Actor
   override def receive: Receive = {
     case msg: CamelMessage =>
       sender ! (msg.body match {
-        case ListTopics(callback) => callback match {
-          case null => write(Topics(Kafka.getTopics))
-          case _ => new CamelMessage("/**/" + callback + "(" + write(Topics(Kafka.getTopics)) + ")", Map("content-type"->"application/x-javascript"))
-        }
-        case ListMsgTypes(callback) => callback match {
-          case null => write(MsgTypes(decoders.map(d => MsgType(d._1)).toList))
-          case _ => new CamelMessage("/**/" + callback + "(" + write(MsgTypes(decoders.map(d => MsgType(d._1)).toList)) + ")", Map("content-type"->"application/x-javascript"))
-        }
-        case TopicDetails(topicName, callback) => callback match {
-          case null => write(Partitions(Kafka.getTopic(topicName)))
-          case _ => new CamelMessage("/**/" + callback + "(" + write(Partitions(Kafka.getTopic(topicName))) + ")", Map("content-type"->"application/x-javascript"))
-        }
+        case ListTopics(callback) => writeJson(Topics(Kafka.getTopics), callback)
+        case ListMsgTypes(callback) => writeJson(MsgTypes(decoders.map(d => MsgType(d._1)).toList), callback)
+        case TopicDetails(topicName, callback) => writeJson(Partitions(Kafka.getTopic(topicName)), callback)
         case Messages(topicName, partition, offset, msgType, callback) => {
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
           val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10).map(
             _.map(a => {
-              val decoded = Try(decoder.decode(a.message)) match {
-                case Success(value) => value
-                case Failure(e) => s"Unable to decode with ${decoder.getName()}: ${e.getMessage}"
-              }
+              val decoded = decode(decoder, a.message)
               KMessage(a.offset, a.timestamp, decoded.take(500), a.size, decoder.getName(), decoded.length)
             })).getOrElse(List()))
-          callback match {
-            case null => write(response)
-            case _ => new CamelMessage("/**/" + callback + "(" + write(response) + ")", Map("content-type"->"application/x-javascript"))
-          }
+          writeJson(response, callback)
         }
         case Message(topicName, partition, offset, msgType, callback) => {
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
           val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong).map(
             _.map(a => {
-              val decoded = Try(decoder.decode(a.message)) match {
-                case Success(value) => value
-                case Failure(e) => s"Unable to decode with ${decoder.getName()}: ${e.getMessage}"
-              }
+              val decoded = decode(decoder, a.message)
               val truncStr = if (decoded.length > 5000)
                 """
                   |... message truncated""".stripMargin else ""
               KMessage(a.offset, a.timestamp, decoded.take(5000) + truncStr, a.size, decoder.getName(), decoded.length)})).getOrElse(List()))
-          callback match {
-            case null => write(response)
-            case _ => new CamelMessage("/**/" + callback + "(" + write(response) + ")", Map("content-type"->"application/x-javascript"))
-          }
+          writeJson(response, callback)
         }
         case MessageB(topicName, partition, offset, _) => {
           Kafka.getMessage(topicName, partition.toInt, offset.toLong) match {
@@ -77,12 +57,23 @@ class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with Actor
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
           Kafka.getMessage(topicName, partition.toInt, offset.toLong) match {
             case None => ""
-            case Some(l) => Try(decoder.decode(l.head.message)) match {
-              case Success(value) => value
-              case Failure(e) => s"Unable to decode with ${decoder.getName()}: ${e.getMessage}"
-            }
+            case Some(l) => decode(decoder, (l.head.message))
           }
         }
       })
+  }
+
+  def writeJson(obj: Any, callback: String): io.Serializable = {
+    callback match {
+      case null => write(obj)
+      case _ => new CamelMessage("/**/" + callback + "(" + write(obj) + ")", Map("content-type"->"application/x-javascript"))
+    }
+  }
+
+  def decode(decoder: Decoder, message: Array[Byte]): String = {
+    Try(decoder.decode(message)) match {
+      case Success(value) => value
+      case Failure(e) => s"Unable to decode with ${decoder.getName()}: ${e.getMessage}"
+    }
   }
 }
