@@ -38,6 +38,8 @@ libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.13"
 libraryDependencies += "org.json4s" %% "json4s-jackson" % "3.6.10"
 libraryDependencies += "org.json4s" %% "json4s-native" % "3.6.10"
 libraryDependencies += "org.jasypt" % "jasypt" % "1.9.1"
+// https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-util
+libraryDependencies += "org.eclipse.jetty" % "jetty-util" % "9.4.32.v20200930" % Test
 
 
 val pack = taskKey[Unit]("pack")
