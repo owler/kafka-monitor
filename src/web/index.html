@@ -92,7 +92,7 @@
                                 Search
                             </td>
                             <td>
-                                <input id="topic2search" style="width:250px;" value="" disabled/>
+                                <input id="topic2search" style="width:250px;" value=" " disabled/>
                             </td>
                             <td>
                                 <input id="partition2search" style="width:50px;" value="0" disabled/>
@@ -101,12 +101,11 @@
                             <td>
                                 <input id="offset2search" style="width:150px;" value="0"/>
                             </td>
-                            <td><input id="selectedOffset2search" style='width:150px;' disabled/>
+                            <td><input id="selectedOffset2search" style="width:150px;" value="0" disabled/>
                             </td>
                             <td>
                                 <select id="messageTypeComboBox">
                                     <option>UTF8</option>
-                                    <option>RFG</option>
                                 </select>
                             </td>
                         </tr>
@@ -114,19 +113,24 @@
                 </td>
             </tr>
             <tr >
-                <td>
+                <td><div style="height:750px; width:1350px;">
                     <div id="messageList" ></div>
-                </td>
-            </tr>
-
-            <tr>
-                <td valign="top" style="height:100%">
-                    <div id="showMessage" style="height:480px; width:1350px;"/>
+                    <div id="showMessage" style="width:100%;"/>
+                </div>
                 </td>
             </tr>
         </table>
 
         <script>
+
+            var transportMsgTypes = {
+                read: {
+                    url: "/topic/msgtypes",
+                    dataType: "jsonp",
+                    jsonp: "callback",
+                    cache: false
+                }
+            };
 
             var transport = {
                 read: {
@@ -205,6 +209,14 @@
             });
 
 
+            var msgTypeDataSource = new kendo.data.DataSource({
+                transport: transportMsgTypes,
+                //data: data,
+                schema: {
+                    data: "msgtypes"
+                }
+            });
+
 
             function createGrid() {
                 $("#gridTasks").kendoGrid({
@@ -248,8 +260,16 @@
                 });
             }
 
+            function initControls() {
+             $("#messageTypeComboBox").kendoComboBox({
+                        dataTextField: "msgtype",
+                        dataValueField: "msgtype",
+                        dataSource: msgTypeDataSource
+                    });
+            }
 
             $(document).ready(function() {
+                initControls();
                 createGrid();
                 createMessageGrid();
             });
