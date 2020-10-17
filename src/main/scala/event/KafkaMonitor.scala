@@ -8,9 +8,11 @@ import akka.routing.FromConfig
 import event.ext.{PluginManager, Utf8Decoder}
 import event.message.{ListMsgTypes, ListTopics, Message, MessageB, MessageT, Messages, TopicDetails}
 import event.processor.{RedirectProcessor, StaticContentProcessor}
+import event.security.KSecurityHandler
 import event.utils.CharmConfigObject
 import org.apache.camel.Exchange
 import org.apache.camel.builder.RouteBuilder
+import org.apache.camel.impl.SimpleRegistry
 import org.apache.camel.model.rest.RestBindingMode
 
 
@@ -95,6 +97,9 @@ object KafkaMonitor {
     val utfDecoder = new Utf8Decoder();
     val decoders = Map((utfDecoder.getName() -> utfDecoder)) ++  PluginManager.loadDecoders(conf.getString("plugin.path"))
     val monitor = system.actorOf(Props(classOf[KafkaMonitorActor], decoders).withRouter(FromConfig()), "kafka-monitor")
+    val registry = new SimpleRegistry()
+    registry.put("authHandler", new KSecurityHandler)
+    camel.setRegistry(registry)
 
     camel.addRoutes(new CustomRouteBuilder(system, monitor))
     println("KafkaMonitor Service startup in " + new Date())
