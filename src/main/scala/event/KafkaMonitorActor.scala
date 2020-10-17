@@ -5,8 +5,8 @@ import java.text.SimpleDateFormat
 import akka.actor.{Actor, ActorLogging}
 import akka.camel.CamelMessage
 import event.ext.Decoder
-import event.json.{KMessage, KMessages, Partitions, Topics}
-import event.message.{ListTopics, Message, MessageB, MessageT, Messages, TopicDetails}
+import event.json.{KMessage, KMessages, MsgType, MsgTypes, Partitions, Topics}
+import event.message.{ListMsgTypes, ListTopics, Message, MessageB, MessageT, Messages, TopicDetails}
 import org.json4s.native.Serialization.write
 import org.json4s.DefaultFormats
 
@@ -24,6 +24,10 @@ class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with Actor
         case ListTopics(callback) => callback match {
           case null => write(Topics(Kafka.getTopics))
           case _ => new CamelMessage("/**/" + callback + "(" + write(Topics(Kafka.getTopics)) + ")", Map("content-type"->"application/x-javascript"))
+        }
+        case ListMsgTypes(callback) => callback match {
+          case null => write(MsgTypes(decoders.map(d => MsgType(d._1)).toList))
+          case _ => new CamelMessage("/**/" + callback + "(" + write(MsgTypes(decoders.map(d => MsgType(d._1)).toList)) + ")", Map("content-type"->"application/x-javascript"))
         }
         case TopicDetails(topicName, callback) => callback match {
           case null => write(Partitions(Kafka.getTopic(topicName)))

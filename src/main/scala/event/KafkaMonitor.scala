@@ -6,10 +6,10 @@ import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.camel.{CamelExtension, _}
 import akka.routing.FromConfig
 import event.ext.{PluginManager, Utf8Decoder}
-import event.message.{ListTopics, Message, MessageB, MessageT, Messages, TopicDetails}
+import event.message.{ListMsgTypes, ListTopics, Message, MessageB, MessageT, Messages, TopicDetails}
 import event.processor.{RedirectProcessor, StaticContentProcessor}
 import event.utils.CharmConfigObject
-import org.apache.camel.{Exchange, Processor}
+import org.apache.camel.Exchange
 import org.apache.camel.builder.RouteBuilder
 import org.apache.camel.model.rest.RestBindingMode
 
@@ -31,6 +31,7 @@ object KafkaMonitor {
       */
       rest("/topic/")
         .get("/list").to("direct:listTopics")
+        .get("/msgtypes").to("direct:msgTypes")
         .get("/details?filter[filters][0][value]={id}").to("direct:topicDetails")
         .get("/{id}/partition/{partition}/offset/{offset}/msgtype/{msgtype}/limit/{limit}").to("direct:showMessages")
         .get("/{id}/partition/{partition}/offset/{offset}/msgtype/{msgtype}").to("direct:showMessage")
@@ -39,8 +40,12 @@ object KafkaMonitor {
 
       from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/topic/?matchOnUriPrefix=true").to("http://localhost:8877/topic?bridgeEndpoint=true")
       from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/?matchOnUriPrefix=true").process(staticProcessor)
+
       from("direct:listTopics").process((exchange: Exchange) =>
         exchange.getIn.setBody(ListTopics(exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
+
+      from("direct:msgTypes").process((exchange: Exchange) =>
+        exchange.getIn.setBody(ListMsgTypes(exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
 
       from("direct:topicDetails").process((exchange: Exchange) => {
         println(exchange.getIn.getHeaders)
