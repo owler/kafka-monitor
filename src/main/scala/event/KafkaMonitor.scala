@@ -15,7 +15,8 @@ import org.apache.camel.model.rest.RestBindingMode
 
 
 object KafkaMonitor {
-  val staticProcessor = new StaticContentProcessor()
+  val conf = CharmConfigObject
+  val staticProcessor = new StaticContentProcessor(conf.getConfig)
   val redirectProcessor = new RedirectProcessor()
 
   class CustomRouteBuilder(system: ActorSystem, monitor: ActorRef) extends RouteBuilder {
@@ -88,13 +89,11 @@ object KafkaMonitor {
   }
 
 
-  val conf = CharmConfigObject
-
   def main(str: Array[String]) {
     val system = ActorSystem("event-system")
     val camel = CamelExtension(system).context
     val utfDecoder = new Utf8Decoder();
-    val decoders = Map(utfDecoder.getName() -> utfDecoder) ++ PluginManager.loadDecoders(conf.getString("plugin.path"))
+    val decoders = Map((utfDecoder.getName() -> utfDecoder)) ++  PluginManager.loadDecoders(conf.getString("plugin.path"))
     val monitor = system.actorOf(Props(classOf[KafkaMonitorActor], decoders).withRouter(FromConfig()), "kafka-monitor")
 
     camel.addRoutes(new CustomRouteBuilder(system, monitor))
