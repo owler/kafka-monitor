@@ -10,6 +10,8 @@ import event.message.{ListMsgTypes, ListTopics, Message, MessageB, MessageT, Mes
 import org.json4s.native.Serialization.write
 import org.json4s.DefaultFormats
 
+import scala.util.{Failure, Success, Try}
+
 
 class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with ActorLogging {
   val dataformat = "yyyy-MM-dd HH:mm:ss.SSS z"
@@ -37,7 +39,10 @@ class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with Actor
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
           val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10).map(
             _.map(a => {
-              val decoded = decoder.decode(a.message)
+              val decoded = Try(decoder.decode(a.message)) match {
+                case Success(value) => value
+                case Failure(e) => s"Unable to decode with ${decoder.getName()}: ${e.getMessage}"
+              }
               KMessage(a.offset, a.timestamp, decoded.take(500), a.size, decoder.getName(), decoded.length)
             })).getOrElse(List()))
           callback match {
@@ -49,7 +54,10 @@ class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with Actor
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
           val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong).map(
             _.map(a => {
-              val decoded = decoder.decode(a.message)
+              val decoded = Try(decoder.decode(a.message)) match {
+                case Success(value) => value
+                case Failure(e) => s"Unable to decode with ${decoder.getName()}: ${e.getMessage}"
+              }
               val truncStr = if (decoded.length > 5000)
                 """
                   |... message truncated""".stripMargin else ""
@@ -69,7 +77,10 @@ class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with Actor
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
           Kafka.getMessage(topicName, partition.toInt, offset.toLong) match {
             case None => ""
-            case Some(l) => decoder.decode(l.head.message)
+            case Some(l) => Try(decoder.decode(l.head.message)) match {
+              case Success(value) => value
+              case Failure(e) => s"Unable to decode with ${decoder.getName()}: ${e.getMessage}"
+            }
           }
         }
       })
