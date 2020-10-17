@@ -94,7 +94,7 @@ object KafkaMonitor {
     val system = ActorSystem("event-system")
     val camel = CamelExtension(system).context
     val utfDecoder = new Utf8Decoder();
-    val decoders = PluginManager.loadDecoders(conf.getString("plugin.path")) + (utfDecoder.getName() -> utfDecoder)
+    val decoders = Map(utfDecoder.getName() -> utfDecoder) ++ PluginManager.loadDecoders(conf.getString("plugin.path"))
     val monitor = system.actorOf(Props(classOf[KafkaMonitorActor], decoders).withRouter(FromConfig()), "kafka-monitor")
 
     camel.addRoutes(new CustomRouteBuilder(system, monitor))
