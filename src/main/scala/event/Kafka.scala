@@ -14,7 +14,7 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.slf4j.LoggerFactory
 
 import scala.jdk.CollectionConverters._
-import scala.collection.mutable
+import scala.collection.{IterableOnce, mutable}
 
 
 case class TopicMetaData(topic: String, metadata: mutable.SortedMap[Int, (Long, Long)])
@@ -71,7 +71,7 @@ object Kafka {
     repo(topicName).metadata.map(tmd => Partition(topicName, tmd._1, tmd._2._1, tmd._2._2)).toList
   }
 
-  implicit class ToSortedMap[A, B](tuples: TraversableOnce[(A, B)])
+  implicit class ToSortedMap[A, B](tuples: IterableOnce[(A, B)])
                                   (implicit ordering: Ordering[A]) {
     def toSortedMap = mutable.SortedMap() ++ tuples
   }
