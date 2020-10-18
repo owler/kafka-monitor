@@ -11,7 +11,7 @@ class RedirectProcessor extends Processor{
     val in = exchange.getIn
     val relativepath = in.getHeader(Exchange.HTTP_PATH, classOf[String])
     val query = in.getHeader(Exchange.HTTP_QUERY, classOf[String])
-    exchange.getOut.setHeader(Exchange.HTTP_RESPONSE_CODE, 302)
-    exchange.getOut.setHeader("location", s"http://${host}:8877/topic/${relativepath}/?${query}")
+    exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 302)
+    exchange.getMessage().setHeader("location", s"http://${host}:8877/topic/${relativepath}/?${query}")
   }
 }

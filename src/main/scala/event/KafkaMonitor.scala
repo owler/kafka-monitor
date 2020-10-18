@@ -91,7 +91,7 @@ object KafkaMonitor {
   }
 
 
-  def main(str: Array[String]) {
+  def main(str: Array[String]): Unit = {
     val system = ActorSystem("event-system")
     val camel = CamelExtension(system).context
     val utfDecoder = new Utf8Decoder();
@@ -105,7 +105,7 @@ object KafkaMonitor {
     println("KafkaMonitor Service startup in " + new Date())
 
     Runtime.getRuntime.addShutdownHook(new Thread() {
-      override def run() {
+      override def run(): Unit = {
         println("Shutdown in progress ...")
         system.terminate()
         println("Shutdown done")

@@ -5,7 +5,7 @@ import org.eclipse.jetty.security.authentication.BasicAuthenticator
 import org.eclipse.jetty.util.security.Constraint
 import org.eclipse.jetty.security.ConstraintMapping
 import org.eclipse.jetty.security.HashLoginService
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class KSecurityHandler extends ConstraintSecurityHandler {
 

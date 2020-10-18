@@ -14,7 +14,7 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.slf4j.LoggerFactory
 
 import scala.jdk.CollectionConverters._
-import scala.collection.{IterableOnce, mutable}
+import scala.collection.mutable
 
 
 case class TopicMetaData(topic: String, metadata: mutable.SortedMap[Int, (Long, Long)])

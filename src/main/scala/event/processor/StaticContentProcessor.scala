@@ -23,7 +23,7 @@ class StaticContentProcessor(conf: Config) extends Processor {
     val formattedPath = String.format("%s/%s", requestPath, relativepath).replaceAll("/+", "/")
     log.debug("trying " + formattedPath)
 
-    val out = exchange.getOut
+    val out = exchange.getMessage()
     try {
       /* use ResourseAsStream if you need to read from classpath */
       //val pathStream = this.getClass.getResourceAsStream(formattedPath)
