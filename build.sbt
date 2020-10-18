@@ -9,7 +9,7 @@ val workaround = {
 version := "1.0.0"
 
 scalaVersion := "2.13.3"
-val camelVersion = "3.5.0"
+val camelVersion = "2.25.2"
 val akkaVersion = "2.5.32"
 
 scalacOptions ++= Seq("-deprecation")
