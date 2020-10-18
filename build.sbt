@@ -8,9 +8,9 @@ val workaround = {
 }
 version := "1.0.0"
 
-scalaVersion := "2.12.8"
-val camelVersion = "2.23.0"
-val akkaVersion = "2.5.19"
+scalaVersion := "2.13.3"
+val camelVersion = "3.5.0"
+val akkaVersion = "2.5.32"
 
 scalacOptions ++= Seq("-deprecation")
 
@@ -21,23 +21,23 @@ unmanagedBase := baseDirectory.value / "lib"
 // https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api
 libraryDependencies += "jakarta.xml.bind" % "jakarta.xml.bind-api" % "2.3.3"
 // https://mvnrepository.com/artifact/org.apache.kafka/kafka
-libraryDependencies += "org.apache.kafka" %% "kafka" % "2.2.0"
+libraryDependencies += "org.apache.kafka" %% "kafka" % "2.6.0"
 // https://mvnrepository.com/artifact/commons-io/commons-io
 libraryDependencies += "commons-io" % "commons-io" % "2.8.0"
 
 
 libraryDependencies += "junit" % "junit" % "4.12" % "test"
-libraryDependencies += "org.scalatest" % "scalatest_2.12" % "3.0.4"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.2"
 
 libraryDependencies += "com.typesafe.akka" %% "akka-actor" % akkaVersion
 libraryDependencies += "com.typesafe.akka" %% "akka-camel" % akkaVersion
 libraryDependencies += "org.apache.camel" % "camel-jetty" % camelVersion
 libraryDependencies += "org.apache.camel" % "camel-http" % camelVersion
 libraryDependencies += "org.apache.camel" % "camel-stream" % camelVersion
-libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.13"
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
 libraryDependencies += "org.json4s" %% "json4s-jackson" % "3.6.10"
 libraryDependencies += "org.json4s" %% "json4s-native" % "3.6.10"
-libraryDependencies += "org.jasypt" % "jasypt" % "1.9.1"
+libraryDependencies += "org.jasypt" % "jasypt" % "1.9.3"
 // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-util
 libraryDependencies += "org.eclipse.jetty" % "jetty-util" % "9.4.32.v20200930" % Test
 

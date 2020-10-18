@@ -13,8 +13,8 @@ import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConverters._
-import scala.collection.mutable
+import scala.jdk.CollectionConverters._
+import scala.collection.{IterableOnce, mutable}
 
 
 case class TopicMetaData(topic: String, metadata: mutable.SortedMap[Int, (Long, Long)])
@@ -32,7 +32,7 @@ object Kafka {
 
 
   private def createConsumer(props: Properties = new Properties()) = {
-    props.putAll(conf.parse("kafka").mapValues(_.toString).asJava)
+    props.putAll(conf.parse("kafka").transform((_,v) => v.toString).asJava)
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
     // Create the consumer using props.
@@ -73,9 +73,9 @@ object Kafka {
 
   implicit class ToSortedMap[A, B](tuples: TraversableOnce[(A, B)])
                                   (implicit ordering: Ordering[A]) {
-    def toSortedMap =
-      mutable.SortedMap(tuples.toSeq: _*)
+    def toSortedMap = mutable.SortedMap() ++ tuples
   }
+
 
   private def getTopicInfo(tp: List[TopicPartition], consumer: KafkaConsumer[Array[Byte], Array[Byte]]): Map[String, TopicMetaData] = {
     val startOffsets = consumer.beginningOffsets(tp.asJava).asScala

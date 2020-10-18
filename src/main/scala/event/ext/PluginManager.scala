@@ -7,7 +7,7 @@ import java.util.jar.JarFile
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object PluginManager {
   val log = Logger(LoggerFactory.getLogger(this.getClass))
