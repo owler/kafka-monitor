@@ -124,7 +124,7 @@
         <script>
 
             var transportMsgTypes = {
-                read: {
+               read: {
                     url: "/topic/msgtypes",
                     dataType: "jsonp",
                     jsonp: "callback",
@@ -316,13 +316,14 @@
                     $("#topic2search").val(id[0]);
                     $("#partition2search").val(id[1]);
                     $("#offset2search").val(id[2]);
+                    $("#selectedOffset2search").val(id[2]);
                     $("#showMessage").empty();
                     search();
                 });
                 tr.mouseover(function () {
                     $(this).css("background-color", "#9BBB38");
                 });
-                tr.mouseout(function () {
+               tr.mouseout(function () {
                     $(this).css("background-color", "");
                 });
             }
@@ -355,6 +356,10 @@
 
             function search(e) {
                 messageDataSource.read();
+                                var offset = $("#offset2search").val();
+                                var selectedOffset = $("#selectedOffset2search").val();
+                                if(parseInt(selectedOffset) < parseInt(offset)) {$("#selectedOffset2search").val(offset)};
+                message2DataSource.read();
             }
         </script>
     </div>
