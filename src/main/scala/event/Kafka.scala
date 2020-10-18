@@ -1,9 +1,9 @@
 package event
 
 import java.time.Duration
-import java.util.{Date, Properties}
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
+import java.util.{Date, Properties}
 
 import com.typesafe.scalalogging.Logger
 import event.json.{KMessage, Partition, Topic}
@@ -19,19 +19,20 @@ import scala.collection.mutable
 
 case class TopicMetaData(topic: String, metadata: mutable.SortedMap[Int, (Long, Long)])
 
+case class MessagePosition(topic: String, partition: Int, offset: Long)
+
 object Kafka {
   val log = Logger(LoggerFactory.getLogger(this.getClass))
   val conf = CharmConfigObject
-  val BOOTSTRAP_SERVERS = conf.getString("kafka.brokers")
   val cacheTime = conf.getConfig.getLong("kafka.cacheTime")
   var repo = new ConcurrentHashMap[String, TopicMetaData]().asScala
   var repoRefreshTimestamp = new AtomicLong(0)
+  val messageCache = LRUCache[MessagePosition, KMessage[Array[Byte]]](100)
   refreshRepo
 
 
   private def createConsumer(props: Properties = new Properties()) = {
-    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS)
-    //props.put(ConsumerConfig.GROUP_ID_CONFIG, null)
+    props.putAll(conf.parse("kafka").mapValues(_.toString).asJava)
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
     // Create the consumer using props.
@@ -60,7 +61,7 @@ object Kafka {
   }
 
   def getTopics: List[Topic] = {
-    if(rotten()) {
+    if (rotten()) {
       refreshRepo
     }
     repo.values.toList.sortBy(t => t.topic).map(t => Topic(t.topic))
@@ -84,18 +85,32 @@ object Kafka {
 
 
   def getMessage(topic: String, partition: Int, offset: Long, count: Int = 1): Option[List[KMessage[Array[Byte]]]] = {
-    try{repo.get(topic).flatMap(
-      _.metadata.get(partition).flatMap(offsets => if (offsets._1 != offsets._2 && offset < offsets._2) Some(offset) else None)
-    ) map { verifiedOffset =>
-      val consumer = createConsumer()
-      val tp = new TopicPartition(topic, partition)
-      consumer.assign(List(tp).asJava)
-      consumer.seek(tp, verifiedOffset)
-      val records = consumer.poll(Duration.ofSeconds(10))
-      val resp = records.iterator().asScala.take(count).map(m => KMessage(m.offset(), new Date(m.timestamp()), m.value(), m.value().length, null, 0)).toList
-      consumer.close()
-      resp
-    }} catch {
+    if (count == 1) {
+      messageCache.get(MessagePosition(topic, partition, offset)) match {
+        case Some(m) => Some(List(m))
+        case None => loadFromKafka(topic, partition, offset, count)
+      }
+    } else {
+      loadFromKafka(topic, partition, offset, count)
+    }
+  }
+
+  def loadFromKafka(topic: String, partition: Int, offset: Long, count: Int = 1): Option[List[KMessage[Array[Byte]]]] = {
+    try {
+      repo.get(topic).flatMap(
+        _.metadata.get(partition).flatMap(offsets => if (offsets._1 != offsets._2 && offset < offsets._2) Some(offset) else None)
+      ) map { verifiedOffset =>
+        val consumer = createConsumer()
+        val tp = new TopicPartition(topic, partition)
+        consumer.assign(List(tp).asJava)
+        consumer.seek(tp, verifiedOffset)
+        val records = consumer.poll(Duration.ofSeconds(10))
+        val resp = records.iterator().asScala.take(count).map(m => KMessage(m.offset(), new Date(m.timestamp()), m.value(), m.value().length, null, 0)).toList.take(count)
+        resp.foreach(m => messageCache += MessagePosition(topic, partition, m.offset) -> m)
+        consumer.close()
+        resp
+      }
+    } catch {
       case e: Throwable => log.error("Unable get message: ", e); None
     }
   }
