@@ -288,7 +288,6 @@
                     var partition = $("#partition2search").val;
                     var offset = $(this).find('#offsetId').text();
                     $("#selectedOffset2search").val(offset);
-                    //createShowGrid();
                     message2DataSource.read();
                 });
                 tr.mouseover(function () {
@@ -298,17 +297,6 @@
                     $(this).css("background-color", "");
                 });
             }
-
-            function createShowGrid() {
-                $("#showMessage").kendoGrid({
-                    columns:[
-                        {title: "Message", field: "message"}
-                    ],
-                    scrollable: false,
-                    dataSource: message2DataSource
-                });
-            }
-
 
             function injectDetailRowEvent() {
                 var tr = $('.k-detail-cell tbody tr');
