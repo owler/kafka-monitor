@@ -345,9 +345,9 @@
 
             function search(e) {
                 messageDataSource.read();
-                                var offset = $("#offset2search").val();
-                                var selectedOffset = $("#selectedOffset2search").val();
-                                if(parseInt(selectedOffset) < parseInt(offset)) {$("#selectedOffset2search").val(offset)};
+                var offset = $("#offset2search").val();
+                var selectedOffset = $("#selectedOffset2search").val();
+                if(parseInt(selectedOffset) < parseInt(offset)) {$("#selectedOffset2search").val(offset)};
                 message2DataSource.read();
             }
         </script>
