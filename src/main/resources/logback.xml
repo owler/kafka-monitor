@@ -18,8 +18,10 @@
         </encoder>
     </appender>
 
-    <root level="info">
+    <root level="error">
         <appender-ref ref="STDOUT"/>
+    </root>
+    <root level="info">
         <appender-ref ref="FILE"/>
     </root>
 
