@@ -72,7 +72,7 @@ class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with Actor
 
   def decode(decoder: Decoder, message: Array[Byte]): String = {
     Try(decoder.decode(message)) match {
-      case Success(value) => value
+      case Success(value) => if(value == null) s"${decoder.getName()} returned null" else value
       case Failure(e) => s"Unable to decode with ${decoder.getName()}: ${e.getMessage}"
     }
   }
