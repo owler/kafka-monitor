@@ -1,6 +1,5 @@
 package event.json
 
-import java.sql.Timestamp
 import java.util.Date
 
 trait Model {
