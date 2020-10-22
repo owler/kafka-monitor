@@ -7,10 +7,10 @@ import org.eclipse.jetty.security.ConstraintMapping
 import org.eclipse.jetty.security.HashLoginService
 import scala.jdk.CollectionConverters._
 
-class KSecurityHandler extends ConstraintSecurityHandler {
+class KSecurityHandler(enabled: Boolean) extends ConstraintSecurityHandler {
 
   val constraint = new Constraint(Constraint.__BASIC_AUTH, "user")
-  constraint.setAuthenticate(true)
+  constraint.setAuthenticate(enabled)
 
   val cm = new ConstraintMapping
   cm.setPathSpec("/*")

@@ -98,7 +98,7 @@ object KafkaMonitor {
     val decoders = Map((utfDecoder.getName() -> utfDecoder)) ++  PluginManager.loadDecoders(conf.getString("plugin.path"))
     val monitor = system.actorOf(Props(classOf[KafkaMonitorActor], decoders).withRouter(FromConfig()), "kafka-monitor")
     val registry = new SimpleRegistry()
-    registry.put("authHandler", new KSecurityHandler)
+    registry.put("authHandler", new KSecurityHandler(conf.getConfig.getBoolean("security.enabled")))
     camel.setRegistry(registry)
 
     camel.addRoutes(new CustomRouteBuilder(system, monitor))

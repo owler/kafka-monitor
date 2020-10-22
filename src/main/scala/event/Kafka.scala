@@ -24,7 +24,7 @@ case class MessagePosition(topic: String, partition: Int, offset: Long)
 object Kafka {
   val log = Logger(LoggerFactory.getLogger(this.getClass))
   val conf = CharmConfigObject
-  val cacheTime = conf.getConfig.getLong("kafka.cacheTime")
+  val cacheTime = conf.getConfig.getLong("cache.ttl")
   var repo = new ConcurrentHashMap[String, TopicMetaData]().asScala
   var repoRefreshTimestamp = new AtomicLong(0)
   val messageCache = LRUCache[MessagePosition, KMessage[Array[Byte]]](100)
