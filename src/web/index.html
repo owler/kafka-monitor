@@ -28,7 +28,7 @@
                 padding: 6px 6px;
                 color: #333;
                 text-align: left;
-                line-height: 14px;
+               line-height: 14px;
                 border-width: 0px;
                 border-style: solid;
                 border-color: #d75b26 #d75b26 #d75b26 #f28455;
@@ -159,7 +159,7 @@
                             + "/msgtype/" + $("#messageTypeComboBox").val()
                             + "/limit/10";
                     },
-                    dataType:"jsonp",
+                   dataType:"jsonp",
                     cache:false,
                     jsonp: "callback"
                 }
@@ -269,8 +269,7 @@
                         dataValueField: "msgtype",
                         dataSource: msgTypeDataSource,
                         change: function(e) {
-                            messageDataSource.read();
-                            message2DataSource.read();
+                           search();
                         }
                     });
             }
@@ -323,7 +322,7 @@
                         type: "jsonp",
                         transport: transportDetails,
                         schema: {
-                            data: "partitions"
+                           data: "partitions"
                         },
 
                         serverPaging: false,
@@ -344,13 +343,19 @@
             }
 
             function search(e) {
-                messageDataSource.read();
                 var offset = $("#offset2search").val();
-                var selectedOffset = $("#selectedOffset2search").val();
-                if(parseInt(selectedOffset) < parseInt(offset)) {
-                    $("#selectedOffset2search").val(offset)
+                var offsetVal = parseInt(offset);
+                if(!isNaN(offsetVal)) {
+                    $("#offset2search").val(offsetVal)
+                    var selectedOffset = $("#selectedOffset2search").val();
+                    if (parseInt(selectedOffset) < offsetVal) {
+                        $("#selectedOffset2search").val(offsetVal)
+                    }
+                    messageDataSource.read();
+                    message2DataSource.read();
+                } else {
+                    alert("Wrong input for start offset " + offset + ". Expected Int value");
                 }
-                message2DataSource.read();
             }
         </script>
     </div>
