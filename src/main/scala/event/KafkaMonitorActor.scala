@@ -27,39 +27,40 @@ class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with Actor
         case ListTopics(callback) => writeJson(Topics(Kafka.getTopics), callback)
         case ListMsgTypes(callback) => writeJson(MsgTypes(decoders.map(d => MsgType(d._1)).toList), callback)
         case TopicDetails(topicName, callback) => writeJson(Partitions(Kafka.getTopic(topicName)), callback)
-        case Messages(topicName, partition, offset, msgType, callback) => {
+
+        case Messages(topicName, partition, offset, msgType, callback) =>
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
           val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10).map(
             _.map(a => {
               val decoded = decode(decoder, a.message, 500)
-              KMessage(a.offset, a.timestamp, new String(decoded.left), a.size, decoder.getName(), decoded.right)
+              KMessage(a.offset, a.timestamp, new String(decoded.bytes), a.size, decoder.getName(), decoded.size)
             })).getOrElse(List()))
           writeJson(response, callback)
-        }
-        case Message(topicName, partition, offset, msgType, callback) => {
+
+        case Message(topicName, partition, offset, msgType, callback) =>
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
           val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong).map(
             _.map(a => {
               val decoded = decode(decoder, a.message, 5000)
-              val truncStr = if (decoded.left.length > 5000)
+              val truncStr = if (decoded.bytes.length > 5000)
                 """
                   |... message truncated""".stripMargin else ""
-              KMessage(a.offset, a.timestamp, new String(decoded.left) + truncStr, a.size, decoder.getName(), decoded.right)})).getOrElse(List()))
+              KMessage(a.offset, a.timestamp, new String(decoded.bytes) + truncStr, a.size, decoder.getName(), decoded.size)})).getOrElse(List()))
           writeJson(response, callback)
-        }
-        case MessageB(topicName, partition, offset, _) => {
+
+        case MessageB(topicName, partition, offset, _) =>
           Kafka.getMessage(topicName, partition.toInt, offset.toLong) match {
             case None => Array[Byte]()
             case Some(l) => l.head.message
           }
-        }
-        case MessageT(topicName, partition, offset, msgType, _) => {
+
+        case MessageT(topicName, partition, offset, msgType, _) =>
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
           Kafka.getMessage(topicName, partition.toInt, offset.toLong) match {
             case None => ""
-            case Some(l) => decode(decoder, l.head.message, Int.MaxValue).left
+            case Some(l) => decode(decoder, l.head.message, Int.MaxValue).bytes
           }
-        }
+
       })
   }
 
@@ -70,7 +71,7 @@ class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with Actor
     }
   }
 
-  def decode(decoder: Decoder, message: Array[Byte], limit: Int): Pair[Array[Byte], Long] = {
+  def decode(decoder: Decoder, message: Array[Byte], limit: Int): Pair = {
     Try(decoder.decode(message, limit)) match {
       case Success(value) => if(value == null) Pair(s"${decoder.getName()} returned null".getBytes(),0) else value
       case Failure(e) => Pair(s"Unable to decode with ${decoder.getName()}: ${e.getMessage}".getBytes(),0)
