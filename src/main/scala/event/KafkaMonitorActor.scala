@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat
 
 import akka.actor.{Actor, ActorLogging}
 import akka.camel.CamelMessage
-import event.ext.{Decoder, Pair}
+import event.ext.{Decoder, DecodedMessage}
 import event.json.{KMessage, KMessages, MsgType, MsgTypes, Partitions, Topics}
 import event.message.{ListMsgTypes, ListTopics, Message, MessageB, MessageT, Messages, TopicDetails}
 import org.json4s.native.Serialization.write
@@ -71,10 +71,10 @@ class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with Actor
     }
   }
 
-  def decode(decoder: Decoder, message: Array[Byte], limit: Int): Pair = {
+  def decode(decoder: Decoder, message: Array[Byte], limit: Int): DecodedMessage = {
     Try(decoder.decode(message, limit)) match {
-      case Success(value) => if(value == null) Pair(s"${decoder.getName()} returned null".getBytes(),0) else value
-      case Failure(e) => Pair(s"Unable to decode with ${decoder.getName()}: ${e.getMessage}".getBytes(),0)
+      case Success(value) => if(value == null) DecodedMessage(s"${decoder.getName()} returned null".getBytes(),0) else value
+      case Failure(e) => DecodedMessage(s"Unable to decode with ${decoder.getName()}: ${e.getMessage}".getBytes(),0)
     }
   }
 }

@@ -1,9 +1,9 @@
 package event.ext
 
-case class Pair(bytes: Array[Byte], size: Long)
+case class DecodedMessage(bytes: Array[Byte], size: Long)
 
 trait Decoder {
   def getName(): String
-  def decode(bytes: Array[Byte]): Pair
-  def decode(bytes: Array[Byte], limit: Int): Pair
+  def decode(bytes: Array[Byte]): DecodedMessage
+  def decode(bytes: Array[Byte], limit: Int): DecodedMessage
 }
