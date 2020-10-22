@@ -98,7 +98,7 @@ object Kafka {
   def loadFromKafka(topic: String, partition: Int, offset: Long, count: Int = 1): Option[List[KMessage[Array[Byte]]]] = {
     try {
       repo.get(topic).flatMap(
-        _.metadata.get(partition).flatMap(offsets => if (offsets._1 != offsets._2 && offset < offsets._2) Some(offset) else None)
+        _.metadata.get(partition).flatMap(offsets => if (offsets._1 != offsets._2 && offset >= offsets._1 && offset < offsets._2) Some(offset) else None)
       ) map { verifiedOffset =>
         val consumer = createConsumer()
         val tp = new TopicPartition(topic, partition)
