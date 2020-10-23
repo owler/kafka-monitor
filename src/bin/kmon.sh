@@ -1,11 +1,13 @@
-#!/bin/bash
+#!/bin/sh
 #
-BASE=/tmp
-PID=/tmp/app.pid
-LOG=/tmp/app.log
-ERROR=/tmp/app-error.log
+BASE=$(cd "$(dirname "$0")" && pwd)
+PID=$BASE/../app.pid
+LOG=$BASE/../logs/app.log
+ERROR=$BASE/../logs/app-error.log
 
-COMMAND='java -Xms512m -Xmx1536m -XX:+UseG1GC -cp "../conf:../lib/*:../lib/ext/*" event.KafkaMonitor'
+cd $BASE
+CLASSPATH=../conf:../lib/*:../lib/ext/*
+COMMAND="java -Xms512m -Xmx1536m -XX:+UseG1GC -cp $CLASSPATH event.KafkaMonitor"
 
 USR=user
 
@@ -16,7 +18,7 @@ status() {
     if [ -f $PID ]
     then
         echo
-        echo "Pid file: $( cat $PID ) [$PID]"
+       echo "Pid file: $( cat $PID ) [$PID]"
         echo
         ps -ef | grep -v grep | grep $( cat $PID )
     else
