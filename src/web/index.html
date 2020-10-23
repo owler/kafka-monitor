@@ -99,7 +99,7 @@
                             </td>
 
                             <td>
-                                <input id="offset2search" style="width:150px;" value="0"/>
+                                <input id="offset2search" style="width:150px;" value="0" onkeyup="key_up(event)"/>
                             </td>
                             <td><input id="selectedOffset2search" style="width:150px;" value="0" disabled/>
                             </td>
@@ -122,6 +122,12 @@
         </table>
 
         <script>
+            function key_up(e){
+                var enterKey = 13; //Key Code for Enter Key
+                if (e.which == enterKey){
+                    search();
+                }
+            }
 
             var transportMsgTypes = {
                read: {
