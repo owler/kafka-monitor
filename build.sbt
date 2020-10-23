@@ -60,6 +60,7 @@ pack := {
             IO.copyDirectory(file(".") / "src/web/", dist / "web")
             IO.copyDirectory(file(".") / "src/plugins/", dist / "plugins")
             IO.createDirectory(dist / "lib/ext")
+            IO.createDirectory(dist / "logs")
             IO.copyFile(jar, dist / "lib" / jar.getName)
     }
 }

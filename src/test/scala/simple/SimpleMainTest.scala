@@ -2,11 +2,11 @@ package simple
 
 import event.utils.CharmConfigObject
 import org.eclipse.jetty.util.security.Password
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 /**
  */
-class SimpleMainTest extends FunSuite {
+class SimpleMainTest extends AnyFunSuite {
   test("") {
     val conf = CharmConfigObject
     println(conf.getString("env"))
