@@ -88,8 +88,7 @@
                         <tr><td>&nbsp;</td><td>topic</td><td>partition</td><td>start from</td><td>selected offset</td><td>type</td><td style="width:100%"></td></tr>
                         <tr>
                             <td>
-                                <button id="submit" onclick="search()"/>
-                                Search
+                                <button id="submit" onclick="search()">Search</button>
                             </td>
                             <td>
                                 <input id="topic2search" style="width:370px;" value=" " disabled/>
@@ -115,7 +114,8 @@
             <tr >
                 <td><div style="height:750px; width:1350px;">
                     <div id="messageList" ></div><br/>
-                    <div id="showMessage" style="width:100%;"/>
+                    <div id="messageInfo" style="width:100%;"></div><br/>
+                    <div id="showMessage" style="width:100%;"></div>
                 </div>
                 </td>
             </tr>
@@ -211,7 +211,12 @@
                change: function(e) {
                        var data = this.data();
                        if (data.length > 0) {
-                            $("#showMessage").text(data[0].message)
+                            var info = "topic: " + $("#topic2search").val()
+                            + " partition: " + $("#partition2search").val()
+                            + " offset: " + $("#selectedOffset2search").val()
+                            + " msgtype: " + $("#messageTypeComboBox").val();
+                            $("#messageInfo").text(info);
+                            $("#showMessage").text(data[0].message);
                        }
                }
             });
