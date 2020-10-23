@@ -51,7 +51,6 @@ object KafkaMonitor {
         exchange.getIn.setBody(ListMsgTypes(exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
 
       from("direct:topicDetails").process((exchange: Exchange) => {
-        println(exchange.getIn.getHeaders)
         exchange.getIn.setBody(TopicDetails(exchange.getIn.getHeader("filter[filters][0][value]", classOf[String]),
           exchange.getIn.getHeader("callback", classOf[String])))}
       ).to(monitor)
