@@ -234,7 +234,7 @@
             function createGrid() {
                 $("#gridTasks").kendoGrid({
                     columns:[
-                        {headerTemplate:"<img style='float:left;' src='css/refresh.png' onclick='(function(){tasksDataSource.read();})()'></img>&nbsp;Topic", field: "topic"}
+                        {headerTemplate:"<img style='float:left;cursor:pointer;' src='css/refresh.png' onclick='(function(){tasksDataSource.read();})()'></img>&nbsp;Topic", field: "topic"}
                     ],
                     scrollable: true,
                     filterable: true,
