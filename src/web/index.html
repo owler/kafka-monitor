@@ -114,7 +114,7 @@
             <tr >
                 <td><div style="height:750px; width:1350px;">
                     <div id="messageList" ></div><br/>
-                    <div id="messageInfo" style="width:100%;background-color: #e3e3e3e3; color:#333;font-size: 12px; text-align:right;"></div>
+                    <div id="messageInfo" style="width:100%;background-color: #9BBB38; color:#222;font-size: 12px; text-align:right;"></div>
                     <div id="showMessage" style="width:100%;"></div>
                 </div>
                 </td>
@@ -211,11 +211,11 @@
                change: function(e) {
                        var data = this.data();
                        if (data.length > 0) {
-                            var info = "topic: " + $("#topic2search").val()
-                            + " partition: " + $("#partition2search").val()
-                            + " offset: " + $("#selectedOffset2search").val()
-                            + " msgtype: " + $("#messageTypeComboBox").val();
-                            $("#messageInfo").text(info);
+                            var info = "topic: <b>" + $("#topic2search").val()
+                            + "</b> partition: <b>" + $("#partition2search").val()
+                            + "</b> offset: <b>" + $("#selectedOffset2search").val()
+                            + "</b> msgtype: <b>" + $("#messageTypeComboBox").val() + "</b>";
+                            $("#messageInfo").html(info);
                             $("#showMessage").text(data[0].message);
                        }
                }
@@ -266,7 +266,7 @@
                         {title: "Timestamp", width:220, field: "timestamp"},
                         {title: "Message", field: "message", width:"100%"},
                         {title: "byte[]", width:90, template:"<a class='a_download' onclick='location.href=downloadMsg(#= offset #)'>#= Math.round(size/100)/10 # Kb</a>"},
-                        {title: "Download", width:130, template:"#= msgtype #:<a class='a_download' onclick='location.href=downloadMsgForType(#= offset # , \"#= msgtype #\")'>#= Math.round(msgsize/100)/10 # Kb</a>"}
+                        {title: "Download", width:130, template:"#= msgtype #: <a class='a_download' onclick='location.href=downloadMsgForType(#= offset # , \"#= msgtype #\")'>#= Math.round(msgsize/100)/10 # Kb</a>"}
                     ],
                     scrollable: true,
                     dataSource: messageDataSource,
