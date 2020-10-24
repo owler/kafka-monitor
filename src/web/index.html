@@ -74,10 +74,10 @@
             }
 
         </style>
-        <table border="0" style="table-layout:fixed; width:97vw;">
+        <table border="0" style="table-layout:fixed; width:97vw;height:800px;">
             <tr>
                 <td rowspan="3" valign="top" style="width:420px;">
-                    <div id="gridTasks" style="width:100%;height:800px;"></div>
+                    <div id="gridTasks" style="width:100%;height:100%;"></div>
                 </td>
                 <td rowspan="3" style="width:6px;">
                     &nbsp;
@@ -85,13 +85,10 @@
 
                 <td>
                     <table id="controls" border="0">
-                        <tr><td>&nbsp;</td><td>topic</td><td>partition</td><td>start from</td><td>type</td><td style="width:100%"></td></tr>
+                        <tr><td>&nbsp;</td><td>partition</td><td>start from</td><td>type</td><td style="width:100%">topic</td></tr>
                         <tr>
                             <td>
                                 <button id="submit" onclick="search()">Search</button>
-                            </td>
-                            <td>
-                                <input id="topic2search" style="width:370px;" value=" " disabled/>
                             </td>
                             <td>
                                 <input id="partition2search" style="width:50px;" value="0" disabled/>
@@ -105,6 +102,9 @@
                                 <select id="messageTypeComboBox">
                                     <option>UTF8</option>
                                 </select>
+                            </td>
+                            <td>
+                                <input id="topic2search" style="width:100%;" value=" " disabled/>
                             </td>
                         </tr>
                     </table>
