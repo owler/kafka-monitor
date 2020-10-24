@@ -90,6 +90,7 @@
                             <td>
                                 <button id="submit" onclick="search()">Search</button>
                             </td>
+
                             <td>
                                 <input id="partition2search" style="width:50px;" value="0" disabled/>
                             </td>
@@ -233,7 +234,7 @@
             function createGrid() {
                 $("#gridTasks").kendoGrid({
                     columns:[
-                        {headerTemplate:"<span>Topic</span>&nbsp;&nbsp;<img src='css/refresh.png' onclick='(function(){tasksDataSource.read();})()'></img>", field: "topic"}
+                        {headerTemplate:"<img style='float:left;' src='css/refresh.png' onclick='(function(){tasksDataSource.read();})()'></img>&nbsp;Topic", field: "topic"}
                     ],
                     scrollable: true,
                     filterable: true,
