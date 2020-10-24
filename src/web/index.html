@@ -51,7 +51,7 @@
                 color: #002200;
                 font-size: 12px;
                 font-weight: bold;
-                overflow:scroll; text-overflow: string;
+                overflow:scroll;
             }
 
             #messageList td {
@@ -74,12 +74,12 @@
             }
 
         </style>
-        <table border="0">
+        <table border="0" style="table-layout:fixed; width:95vw;">
             <tr>
-                <td rowspan="3" valign="top">
-                    <div id="gridTasks" style="width: 420px;height:800px;"></div>
+                <td rowspan="3" valign="top" style="width:420px;">
+                    <div id="gridTasks" style="width:100%;height:800px;"></div>
                 </td>
-                <td rowspan="3">
+                <td rowspan="3" style="width:6px;">
                     &nbsp;
                 </td>
 
@@ -99,7 +99,7 @@
 
                             <td>
                                 <input id="offset2search" style="width:150px;" value="0" onkeyup="key_up(event)"/>
-                                <input id="selectedOffset2search" type="hidden" style="width:150px;" value="0" disabled/>
+                                <input id="selectedOffset2search" type="hidden" value="0" disabled/>
                             </td>
                             <td>
                                 <select id="messageTypeComboBox">
@@ -111,7 +111,7 @@
                 </td>
             </tr>
             <tr >
-                <td><div style="height:750px; width:1350px;">
+                <td><div style="height:750px; ">
                     <div id="messageList" ></div><br/>
                     <div id="messageInfo" style="width:100%;background-color: #9BBB38; color:#222;font-size: 12px; text-align:right;"></div>
                     <div id="showMessage" style="width:100%;"></div>
