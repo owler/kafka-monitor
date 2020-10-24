@@ -85,7 +85,7 @@
 
                 <td>
                     <table id="controls" border="0">
-                        <tr><td>&nbsp;</td><td>topic</td><td>partition</td><td>start from</td><td>selected offset</td><td>type</td><td style="width:100%"></td></tr>
+                        <tr><td>&nbsp;</td><td>topic</td><td>partition</td><td>start from</td><td>type</td><td style="width:100%"></td></tr>
                         <tr>
                             <td>
                                 <button id="submit" onclick="search()">Search</button>
@@ -99,8 +99,7 @@
 
                             <td>
                                 <input id="offset2search" style="width:150px;" value="0" onkeyup="key_up(event)"/>
-                            </td>
-                            <td><input id="selectedOffset2search" style="width:150px;" value="0" disabled/>
+                                <input id="selectedOffset2search" type="hidden" style="width:150px;" value="0" disabled/>
                             </td>
                             <td>
                                 <select id="messageTypeComboBox">
