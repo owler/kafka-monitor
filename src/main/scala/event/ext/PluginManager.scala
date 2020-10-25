@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 import scala.jdk.CollectionConverters._
 
 object PluginManager {
-  val log = Logger(LoggerFactory.getLogger(this.getClass))
+  private val log = Logger(LoggerFactory.getLogger(this.getClass))
   def loadDecoders(path: String): Map[String, Decoder] = {
     val dir = new File(path)
     val files = if (dir.exists && dir.isDirectory) {
