@@ -10,17 +10,17 @@ import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 
 class StaticContentProcessor(conf: Config) extends Processor {
-  val log = Logger(LoggerFactory.getLogger(this.getClass))
-  val root = conf.getString("resourceBase")
+  val log: Logger = Logger(LoggerFactory.getLogger(this.getClass))
+  val root: String = conf.getString("resourceBase")
 
   override def process(exchange: Exchange): Unit = {
     val in = exchange.getIn
 
-    var relativepath = in.getHeader(Exchange.HTTP_PATH, classOf[String]).replaceAll("/+", "/")
+    var relativePath = in.getHeader(Exchange.HTTP_PATH, classOf[String]).replaceAll("/+", "/")
     val requestPath = in.getHeader("CamelServletContextPath", classOf[String]) //CamelServletContextPath
-    if (relativepath.isEmpty || relativepath == "/") relativepath = "index.html"
+    if (relativePath.isEmpty || relativePath == "/") relativePath = "index.html"
 
-    val formattedPath = String.format("%s/%s", requestPath, relativepath).replaceAll("/+", "/")
+    val formattedPath = String.format("%s/%s", requestPath, relativePath).replaceAll("/+", "/")
     log.debug("trying " + formattedPath)
 
     val out = exchange.getMessage()
@@ -37,7 +37,7 @@ class StaticContentProcessor(conf: Config) extends Processor {
       out.setHeader(Exchange.CONTENT_TYPE, Files.probeContentType(path))
     } catch {
       case e: Exception =>
-        out.setBody(relativepath + " not found. " + e.getMessage)
+        out.setBody(relativePath + " not found. " + e.getMessage)
         out.setHeader(Exchange.HTTP_RESPONSE_CODE, "404")
     }
   }

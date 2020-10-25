@@ -5,13 +5,13 @@ import java.net.InetAddress
 import org.apache.camel.{Exchange, Processor}
 
 class RedirectProcessor extends Processor{
-  val host = InetAddress.getLocalHost.getHostAddress
+  val host: String = InetAddress.getLocalHost.getHostAddress
 
   override def process(exchange: Exchange): Unit = {
     val in = exchange.getIn
-    val relativepath = in.getHeader(Exchange.HTTP_PATH, classOf[String])
+    val relativePath = in.getHeader(Exchange.HTTP_PATH, classOf[String])
     val query = in.getHeader(Exchange.HTTP_QUERY, classOf[String])
     exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 302)
-    exchange.getMessage().setHeader("location", s"http://${host}:8877/topic/${relativepath}/?${query}")
+    exchange.getMessage().setHeader("location", s"http://$host:8877/topic/$relativePath/?$query")
   }
 }
