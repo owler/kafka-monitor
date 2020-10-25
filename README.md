@@ -32,3 +32,7 @@ trait Decoder {
   def decode(bytes: Array[Byte], limit: Int): DecodedMessage
 }
 ```
+
+## Securing the Kafka monitor UI
+Kafka monitor UI implements an Basic Auth authentication mechanism to restrict user access.
+Use com.eclipse.Util.Password.obfuscate("your password") to obfuscate password and then add it into myRealm.properties
