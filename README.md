@@ -5,7 +5,7 @@
 # Features
 * **View topics** — partitions with start and end offsets
 * **Browse messages** — UTF8 or custom format
-* **Download** - raw bytes, UTF8 or custom format 
+* **Download messages** - raw bytes, UTF8 or custom format 
 * **Plugins** - supports custom plugins written in Java or Scala to view/download messages
 
 # Requirements
