@@ -7,3 +7,11 @@
 * **Browse messages** — UTF8 or custom format
 * **Download** - raw bytes, UTF8 or custom format 
 * **Plugins** - supports custom plugins written in Java to view/download messages
+
+# Requirements
+* Java 8 or newer
+* Kafka (version 0.10.0 or newer)
+
+# Build
+sbt pack
+
