@@ -20,7 +20,7 @@ Implement your custom Decoder and put jar with single class into plugins folder.
 Any extra lib  place into lib/ext folder.
 decode(bytes: Array[Byte], limit: Int) method may return truncated bytes (for big message) if you specify limit,
 It's expected that DecodedMessage.size property is a size of message before truncate.
-You may put approximate size (it will used only for information)
+You may put approximate size (it will be used only for information)
 ```scala
 package event.ext
 
