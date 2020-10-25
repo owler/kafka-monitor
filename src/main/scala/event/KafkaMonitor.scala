@@ -7,7 +7,7 @@ import akka.camel.{CamelExtension, _}
 import akka.routing.FromConfig
 import event.ext.{PluginManager, Utf8Decoder}
 import event.message.{ListMsgTypes, ListTopics, Message, MessageB, MessageT, Messages, TopicDetails}
-import event.processor.{RedirectProcessor, StaticContentProcessor}
+import event.processor.StaticContentProcessor
 import event.security.KSecurityHandler
 import event.utils.CharmConfigObject
 import org.apache.camel.Exchange
@@ -17,9 +17,9 @@ import org.apache.camel.model.rest.RestBindingMode
 
 
 object KafkaMonitor {
-  val conf = CharmConfigObject
-  val staticProcessor = new StaticContentProcessor(conf.getConfig)
-  val redirectProcessor = new RedirectProcessor()
+  private val conf = CharmConfigObject
+  private val staticProcessor = new StaticContentProcessor(conf.getConfig)
+  //private val redirectProcessor = new RedirectProcessor()
 
   class CustomRouteBuilder(system: ActorSystem, monitor: ActorRef) extends RouteBuilder {
     override def configure(): Unit = {
@@ -75,7 +75,7 @@ object KafkaMonitor {
             exchange.getIn.getHeader("partition", classOf[String]),
             exchange.getIn.getHeader("offset", classOf[String]),
             exchange.getIn.getHeader("callback", classOf[String])))).to(monitor).convertBodyTo(classOf[Array[Byte]])
-        .setHeader("Content-Disposition", simple("attachment;filename=kafka-msg.bin"));
+        .setHeader("Content-Disposition", simple("attachment;filename=kafka-msg.bin"))
 
       from("direct:downloadMessageForType")
         .process((exchange: Exchange) =>
@@ -84,7 +84,7 @@ object KafkaMonitor {
             exchange.getIn.getHeader("offset", classOf[String]),
             exchange.getIn.getHeader("msgType", classOf[String]),
             exchange.getIn.getHeader("callback", classOf[String])))).to(monitor).convertBodyTo(classOf[Array[Byte]])
-        .setHeader("Content-Disposition", simple("attachment;filename=kafka-msg.txt"));
+        .setHeader("Content-Disposition", simple("attachment;filename=kafka-msg.txt"))
 
     }
   }
@@ -93,8 +93,8 @@ object KafkaMonitor {
   def main(str: Array[String]): Unit = {
     val system = ActorSystem("event-system")
     val camel = CamelExtension(system).context
-    val utfDecoder = new Utf8Decoder();
-    val decoders = Map((utfDecoder.getName() -> utfDecoder)) ++  PluginManager.loadDecoders(conf.getString("plugin.path"))
+    val utfDecoder = new Utf8Decoder()
+    val decoders = Map(utfDecoder.getName() -> utfDecoder) ++  PluginManager.loadDecoders(conf.getString("plugin.path"))
     val monitor = system.actorOf(Props(classOf[KafkaMonitorActor], decoders).withRouter(FromConfig()), "kafka-monitor")
     val registry = new SimpleRegistry()
     registry.put("authHandler", new KSecurityHandler(conf.getConfig.getBoolean("security.enabled")))

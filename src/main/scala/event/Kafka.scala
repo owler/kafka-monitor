@@ -22,13 +22,13 @@ case class TopicMetaData(topic: String, metadata: mutable.SortedMap[Int, (Long, 
 case class MessagePosition(topic: String, partition: Int, offset: Long)
 
 object Kafka {
-  val log = Logger(LoggerFactory.getLogger(this.getClass))
-  val conf = CharmConfigObject
-  val cacheTime = conf.getConfig.getLong("cache.ttl")
-  var repo = new ConcurrentHashMap[String, TopicMetaData]().asScala
-  var repoRefreshTimestamp = new AtomicLong(0)
-  val messageCache = LRUCache[MessagePosition, KMessage[Array[Byte]]](conf.getConfig.getInt("cache.size"))
-  refreshRepo
+  private val log = Logger(LoggerFactory.getLogger(this.getClass))
+  private val conf = CharmConfigObject
+  private val cacheTime = conf.getConfig.getLong("cache.ttl")
+  private var repo = new ConcurrentHashMap[String, TopicMetaData]().asScala
+  private val repoRefreshTimestamp = new AtomicLong(0)
+  private val messageCache = LRUCache[MessagePosition, KMessage[Array[Byte]]](conf.getConfig.getInt("cache.size"))
+  refreshRepo()
 
 
   private def createConsumer(props: Properties = new Properties()) = {
@@ -39,7 +39,7 @@ object Kafka {
     new KafkaConsumer[Array[Byte], Array[Byte]](props)
   }
 
-  private def refreshRepo = {
+  private def refreshRepo(): Unit = {
     repo.synchronized {
       if (rotten()) {
         try {
@@ -62,7 +62,7 @@ object Kafka {
 
   def getTopics: List[Topic] = {
     if (rotten()) {
-      refreshRepo
+      refreshRepo()
     }
     repo.values.toList.sortBy(t => t.topic).map(t => Topic(t.topic))
   }
@@ -73,7 +73,7 @@ object Kafka {
 
   implicit class ToSortedMap[A, B](tuples: IterableOnce[(A, B)])
                                   (implicit ordering: Ordering[A]) {
-    def toSortedMap = mutable.SortedMap() ++ tuples
+    def toSortedMap: mutable.SortedMap[A, B] = mutable.SortedMap() ++ tuples
   }
 
 

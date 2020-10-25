@@ -5,7 +5,7 @@ import java.net.InetAddress
 import org.apache.camel.{Exchange, Processor}
 
 class RedirectProcessor extends Processor{
-  val host: String = InetAddress.getLocalHost.getHostAddress
+  private val host = InetAddress.getLocalHost.getHostAddress
 
   override def process(exchange: Exchange): Unit = {
     val in = exchange.getIn

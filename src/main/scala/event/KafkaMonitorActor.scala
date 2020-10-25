@@ -15,9 +15,9 @@ import scala.util.{Failure, Success, Try}
 
 
 class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with ActorLogging {
-  val dataformat = "yyyy-MM-dd HH:mm:ss.SSS z"
-  implicit val formats = new DefaultFormats {
-    override def dateFormatter = new SimpleDateFormat(dataformat)
+  private val dataFormat = "yyyy-MM-dd HH:mm:ss.SSS z"
+  private implicit val formats: DefaultFormats = new DefaultFormats {
+    override def dateFormatter = new SimpleDateFormat(dataFormat)
   }
 
 

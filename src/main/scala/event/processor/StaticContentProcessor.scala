@@ -10,8 +10,8 @@ import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 
 class StaticContentProcessor(conf: Config) extends Processor {
-  val log: Logger = Logger(LoggerFactory.getLogger(this.getClass))
-  val root: String = conf.getString("resourceBase")
+  private val log = Logger(LoggerFactory.getLogger(this.getClass))
+  private val root = conf.getString("resourceBase")
 
   override def process(exchange: Exchange): Unit = {
     val in = exchange.getIn
