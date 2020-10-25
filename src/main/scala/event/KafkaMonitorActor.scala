@@ -6,7 +6,7 @@ import java.text.SimpleDateFormat
 import akka.actor.{Actor, ActorLogging}
 import akka.camel.CamelMessage
 import event.ext.{Decoder, DecodedMessage}
-import event.json.{KMessage, KMessages, MsgType, MsgTypes, Partitions, Topics}
+import event.json.{KMessage, MsgType}
 import event.message.{ListMsgTypes, ListTopics, Message, MessageB, MessageT, Messages, TopicDetails}
 import org.json4s.native.Serialization.write
 import org.json4s.DefaultFormats
@@ -24,29 +24,29 @@ class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with Actor
   override def receive: Receive = {
     case msg: CamelMessage =>
       sender ! (msg.body match {
-        case ListTopics(callback) => writeJson(Topics(Kafka.getTopics), callback)
-        case ListMsgTypes(callback) => writeJson(MsgTypes(decoders.map(d => MsgType(d._1)).toList), callback)
-        case TopicDetails(topicName, callback) => writeJson(Partitions(Kafka.getTopic(topicName)), callback)
+        case ListTopics(callback) => writeJson("topics" -> Kafka.getTopics, callback)
+        case ListMsgTypes(callback) => writeJson("msgtypes" -> decoders.map(d => MsgType(d._1)).toList, callback)
+        case TopicDetails(topicName, callback) => writeJson("partitions" -> Kafka.getTopic(topicName), callback)
 
         case Messages(topicName, partition, offset, msgType, callback) =>
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
-          val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10).map(
+          val response = Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10).map(
             _.map(a => {
               val decoded = decode(decoder, a.message, 500)
               KMessage(a.offset, a.timestamp, new String(decoded.bytes), a.size, decoder.getName(), decoded.size)
-            })).getOrElse(List()))
-          writeJson(response, callback)
+            })).getOrElse(List())
+          writeJson("messages" -> response, callback)
 
         case Message(topicName, partition, offset, msgType, callback) =>
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
-          val response = KMessages(Kafka.getMessage(topicName, partition.toInt, offset.toLong).map(
+          val response = Kafka.getMessage(topicName, partition.toInt, offset.toLong).map(
             _.map(a => {
               val decoded = decode(decoder, a.message, 5000)
               val truncStr = if (decoded.bytes.length > 5000)
                 """
                   |... message truncated""".stripMargin else ""
-              KMessage(a.offset, a.timestamp, new String(decoded.bytes) + truncStr, a.size, decoder.getName(), decoded.size)})).getOrElse(List()))
-          writeJson(response, callback)
+              KMessage(a.offset, a.timestamp, new String(decoded.bytes) + truncStr, a.size, decoder.getName(), decoded.size)})).getOrElse(List())
+          writeJson("messages" -> response, callback)
 
         case MessageB(topicName, partition, offset, _) =>
           Kafka.getMessage(topicName, partition.toInt, offset.toLong) match {
