@@ -345,7 +345,8 @@
                     sortable: true,
                     pageable: false,
                     columns: [
-                        { title: "partition", width:27, template:"<span>#= partition #</span><span style='display: none' id='id'>#= topic #:#= partition #:#= start #</span>"},
+                        { hidden: true, template:"<span style='display: none' id='id'>#= topic #:#= partition #:#= start #</span>"},
+                        { field: "partition", title: "partition", width: "27px" },
                         { field: "start", title:"start offset", width: "50px" },
                         { field: "end", title:"end offset", width:"50px" }
                     ],
