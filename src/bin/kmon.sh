@@ -6,9 +6,9 @@ LOG=$BASE/../logs/app.log
 ERROR=$BASE/../logs/app-error.log
 
 cd $BASE
-JAVA_OPT=-Djava.security.auth.login.config=../conf/jaas.conf
+JAVA_OPTS=-Djava.security.auth.login.config=../conf/jaas.conf
 CLASSPATH=../conf:../lib/*:../lib/ext/*
-COMMAND="java -Xms512m -Xmx1536m -XX:+UseG1GC $JAVA_OPT -cp $CLASSPATH event.KafkaMonitor"
+COMMAND="java -Xms512m -Xmx1536m -XX:+UseG1GC $JAVA_OPTS -cp $CLASSPATH event.KafkaMonitor"
 
 USR=user
 
