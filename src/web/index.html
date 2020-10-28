@@ -244,7 +244,14 @@
             function createGrid() {
                 $("#gridTasks").kendoGrid({
                     columns:[
-                        {headerTemplate:"<img style='float:left;cursor:pointer;' src='css/refresh.png' onclick='(function(){tasksDataSource.read();})()'></img>&nbsp;Topic", field: "topic"}
+                        {headerTemplate:"<img style='float:left;cursor:pointer;' src='css/refresh.png' onclick='(function(){tasksDataSource.read();})()'></img>&nbsp;Topic",
+                         field: "topic",
+                         filterable: {
+                            cell: {
+                                suggestionOperator: "contains"
+                            }
+                         }
+                        }
                     ],
                     scrollable: true,
                     filterable: true,
