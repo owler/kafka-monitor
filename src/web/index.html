@@ -114,7 +114,7 @@
             <tr >
                 <td><div style="height:750px; ">
                     <div id="messageList" ></div><br/>
-                    <div id="messageInfo" style="width:100%;background-color: #9BBB38; color:#222;font-size: 12px; text-align:right; onclick='formarMsg()'"></div>
+                    <div id="messageInfo" style="width:100%;background-color: #9BBB38; color:#222;font-size: 12px; text-align:right; onclick='formatMsg()'"></div>
                     <div id="showMessage" style="width:100%;"></div>
                 </div>
                 </td>
@@ -123,14 +123,15 @@
 
         <script>
 
-           function formarMsg() {
-                val old = $("#showMessage").style.whiteSpace;
+           function formatMsg() {
+                val old = $("#showMessage").css("white-space");
                 if (old == "pre") {
-                    $("#showMessage").style.whiteSpace="nowrap";
+                    $("#showMessage").css("white-space", "nowrap");
                 } else {
-                    $("#showMessage").style.whiteSpace="pre";
+                    $("#showMessage").css("white-space", "pre");
                 }
             }
+
             function key_up(e){
                 var enterKey = 13; //Key Code for Enter Key
                 if (e.which == enterKey){
