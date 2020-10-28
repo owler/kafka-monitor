@@ -5,7 +5,8 @@ import java.text.SimpleDateFormat
 
 import akka.actor.{Actor, ActorLogging}
 import akka.camel.CamelMessage
-import event.ext.{Decoder, DecodedMessage}
+import com.typesafe.config.Config
+import event.ext.{DecodedMessage, Decoder}
 import event.json.{KMessage, MsgType}
 import event.message.{ListMsgTypes, ListTopics, Message, MessageB, MessageT, Messages, TopicDetails}
 import org.json4s.native.Serialization.write
@@ -14,7 +15,8 @@ import org.json4s.DefaultFormats
 import scala.util.{Failure, Success, Try}
 
 
-class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with ActorLogging {
+class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder]) extends Actor with ActorLogging {
+  private val truncate = conf.getInt("truncate")
   private val dataFormat = "yyyy-MM-dd HH:mm:ss.SSS z"
   private implicit val formats: DefaultFormats = new DefaultFormats {
     override def dateFormatter = new SimpleDateFormat(dataFormat)
@@ -41,8 +43,8 @@ class KafkaMonitorActor(decoders: Map[String, Decoder]) extends Actor with Actor
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
           val response = Kafka.getMessage(topicName, partition.toInt, offset.toLong).map(
             _.map(a => {
-              val decoded = decode(decoder, a.message, 5000)
-              val truncStr = if (decoded.bytes.length > 5000)
+              val decoded = decode(decoder, a.message, truncate)
+              val truncStr = if (decoded.bytes.length > truncate)
                 """
                   |... message truncated""".stripMargin else ""
               KMessage(a.offset, a.timestamp, new String(decoded.bytes) + truncStr, a.size, decoder.getName(), decoded.size)})).getOrElse(List())
