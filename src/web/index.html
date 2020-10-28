@@ -247,6 +247,7 @@
                         {headerTemplate:"<img style='float:left;cursor:pointer;' src='css/refresh.png' onclick='(function(){tasksDataSource.read();})()'></img>&nbsp;Topic",
                          field: "topic",
                          filterable: {
+                         extra: false,
                             cell: {
                                 suggestionOperator: "contains"
                             }
