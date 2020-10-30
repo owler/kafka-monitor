@@ -5,7 +5,7 @@ import java.util.Date
 trait Model {
 }
 
-case class Topic(topic: String) extends Model
+case class Topic(topic: String, enabled: Boolean) extends Model
 case class MsgType(msgtype: String) extends Model
 case class Partition(topic: String, partition: Int, start: Long, end: Long) extends Model
 // size is original length of raw bytes and msgsize is decoded msg size before truncate

@@ -64,7 +64,7 @@ object Kafka {
     if (rotten()) {
       refreshRepo()
     }
-    repo.values.toList.sortBy(t => t.topic).map(t => Topic(t.topic))
+    repo.values.toList.sortBy(t => t.topic).map(t => Topic(t.topic, t.metadata.exists( e => e._2._1 < e._2._2)))
   }
 
   def getTopic(topicName: String): List[Partition] = {

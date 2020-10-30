@@ -272,6 +272,7 @@
                 $("#gridTasks").kendoGrid({
                     columns:[
                         {headerTemplate:"<img style='float:left;cursor:pointer;' src='css/refresh.png' onclick='(function(){tasksDataSource.read();})()'></img>&nbsp;Topic",
+                         template:"<span style='color: #if (enabled) {# ##020202 #} else {# grey #}#;'>#= topic #</span>",
                          field: "topic",
                          filterable: {
                          extra: false,
