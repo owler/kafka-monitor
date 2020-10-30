@@ -44,7 +44,7 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder]) extends Ac
           val response = Kafka.getMessage(topicName, partition.toInt, offset.toLong).map(
             _.map(a => {
               val decoded = decode(decoder, a.message, truncate)
-              val truncStr = if (decoded.bytes.length > truncate)
+              val truncStr = if (decoded.bytes.length >= truncate)
                 """
                   |... message truncated""".stripMargin else ""
               KMessage(a.offset, a.timestamp, new String(decoded.bytes) + truncStr, a.size, decoder.getName(), decoded.size)})).getOrElse(List())
