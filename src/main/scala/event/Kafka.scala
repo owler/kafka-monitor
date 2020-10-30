@@ -46,7 +46,7 @@ object Kafka {
           val consumer = createConsumer()
           val list = consumer.listTopics().asScala
           val tps: List[TopicPartition] = list.flatMap(t => t._2.asScala.map(partitionInfo => new TopicPartition(t._1, partitionInfo.partition()))).toList
-          repo ++= getTopicInfo(tps, consumer)
+          repo = new ConcurrentHashMap(getTopicInfo(tps, consumer).asJava).asScala
           repoRefreshTimestamp.set(System.currentTimeMillis())
           consumer.close()
         } catch {
