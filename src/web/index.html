@@ -47,14 +47,15 @@
             }
 
             #msgInfo td {
-                background-color: #9BBB38;
+                #background-color: #9BBB38;
                 color:#222;
                 line-height: 15px;
-                padding: 0 6px;
+                padding: 0 3px;
                 border-width: 0px;
                 border-style: solid;
                 border-color: #9BBB38;
                 font-size: 12px;
+                white-space: nowrap;
             }
 
 
@@ -128,7 +129,7 @@
                     <div id="messageList" ></div><br/>
                     <table id="msgInfo"><tr>
                         <td>
-                            <div class="radio-toolbar">
+                            <div class="radio-toolbar" >
                                 <input type="radio" id="radioApple" name="radioFruit" value="pre" checked onchange="formatMsg(value)">
                                 <label for="radioApple">norm</label>
 
@@ -139,12 +140,12 @@
                                 <label for="radioOrange">json</label>
                             </div>
                         </td>
-                        <td>
+                        <td style="width:100%;">
                             <div id="messageInfo" style="width:100%;background-color: #9BBB38; color:#222;font-size: 12px; text-align:right;"></div>
                         </td>
                     </tr>
                     </table>
-                            <div id="showMessage" style="width:100%;"></div>
+                    <div id="showMessage" style="width:100%;"></div>
                 </div>
                 </td>
             </tr>
