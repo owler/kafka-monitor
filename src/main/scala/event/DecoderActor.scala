@@ -8,8 +8,8 @@ import scala.util.{Failure, Success, Try}
 
 class DecoderActor(decoders: Map[String, Decoder], limit: Int) extends Actor with ActorLogging {
   override def receive: Receive = {
-    case m: KMessage[Array[Byte]] =>
-      val decoder = decoders.getOrElse(m.msgtype, decoders("UTF8"))
+    case (msgType: String, m: KMessage[Array[Byte]]) =>
+      val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
       val decoded = decode(decoder, m.message, limit)
       val truncStr = if (decoded.bytes.length >= limit)
         """

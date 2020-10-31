@@ -3,7 +3,7 @@ package event
 import java.io
 import java.text.SimpleDateFormat
 
-import akka.actor.{Actor, ActorLogging, ActorRef, ReceiveTimeout}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props, ReceiveTimeout}
 import akka.camel.CamelMessage
 import com.typesafe.config.Config
 import event.ext.{DecodedMessage, Decoder}
@@ -11,16 +11,10 @@ import event.json.{KMessage, MsgType}
 import event.message._
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.write
-
-import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
 class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderActor: ActorRef) extends Actor with ActorLogging {
-
   import context._
-
-  import scala.language.postfixOps
-
   private val truncate = conf.getInt("truncate")
   private val dataFormat = "yyyy-MM-dd HH:mm:ss.SSS z"
   private implicit val formats: DefaultFormats = new DefaultFormats {
@@ -37,15 +31,10 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderAct
 
         case Messages(topicName, partition, offset, msgType, callback) =>
           val list = Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10).getOrElse(List())
-
           log.info("Kafka returns msg: " + list.length)
-          if (list.nonEmpty) {
-            list.foreach(decoderActor ! _)
-            setReceiveTimeout(30 seconds)
-            become(waitingForResponses(sender, list.length, List(), callback))
-          } else {
-            sender ! writeJson("messages" -> List(), callback)
-          }
+          val master = actorOf(Props(classOf[DecoderMasterActor], sender, decoderActor, msgType, callback))
+          master ! list
+
 
         case Message(topicName, partition, offset, msgType, callback) =>
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
@@ -74,22 +63,6 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderAct
         case m: KMessage[Array[Byte]] => log.info("Unxpected msg " + m.offset)
       }
 
-      def waitingForResponses(respondTo: ActorRef, count: Int, list: List[KMessage[Array[Byte]]], callback: String): Receive = {
-        case m: KMessage[Array[Byte]] =>
-          log.info("Receive msg: " + m.offset)
-          log.info("Count " + count)
-          if (count - 1 == 0) {
-            log.info("Responding to client  msgs: " + list.length)
-            respondTo ! writeJson("messages" -> (m :: list), callback)
-            unbecome()
-          } else {
-            become(waitingForResponses(respondTo, count - 1, m :: list, callback))
-          }
-
-        case ReceiveTimeout =>
-          respondTo ! writeJson("messages" -> List(), callback)
-          unbecome()
-      }
   }
 
   def writeJson(obj: Any, callback: String): io.Serializable = {
