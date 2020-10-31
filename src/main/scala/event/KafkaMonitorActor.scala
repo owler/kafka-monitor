@@ -18,6 +18,7 @@ import concurrent.duration._
 
 class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder]) extends Actor with ActorLogging {
   import context._
+  import scala.language.postfixOps
   private val truncate = conf.getInt("truncate")
   private val dataFormat = "yyyy-MM-dd HH:mm:ss.SSS z"
   private implicit val formats: DefaultFormats = new DefaultFormats {
