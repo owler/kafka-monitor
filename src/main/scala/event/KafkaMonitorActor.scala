@@ -3,22 +3,24 @@ package event
 import java.io
 import java.text.SimpleDateFormat
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props, ReceiveTimeout}
+import akka.actor.{Actor, ActorLogging, ActorRef, ReceiveTimeout}
 import akka.camel.CamelMessage
-import akka.routing.FromConfig
 import com.typesafe.config.Config
 import event.ext.{DecodedMessage, Decoder}
 import event.json.{KMessage, MsgType}
-import event.message.{ListMsgTypes, ListTopics, Message, MessageB, MessageT, Messages, TopicDetails}
-import org.json4s.native.Serialization.write
+import event.message._
 import org.json4s.DefaultFormats
+import org.json4s.native.Serialization.write
 
+import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
-import concurrent.duration._
 
 class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderActor: ActorRef) extends Actor with ActorLogging {
+
   import context._
+
   import scala.language.postfixOps
+
   private val truncate = conf.getInt("truncate")
   private val dataFormat = "yyyy-MM-dd HH:mm:ss.SSS z"
   private implicit val formats: DefaultFormats = new DefaultFormats {
@@ -37,9 +39,13 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderAct
           val list = Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10).getOrElse(List())
 
           log.info("Kafka returns msg: " + list.length)
-          list.foreach(decoderActor ! _)
-          setReceiveTimeout(30 seconds)
-          become(waitingForResponses(sender, list.length, List(), callback))
+          if (list.nonEmpty) {
+            list.foreach(decoderActor ! _)
+            setReceiveTimeout(30 seconds)
+            become(waitingForResponses(sender, list.length, List(), callback))
+          } else {
+            sender ! writeJson("messages" -> List(), callback)
+          }
 
         case Message(topicName, partition, offset, msgType, callback) =>
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
@@ -49,7 +55,8 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderAct
               val truncStr = if (decoded.bytes.length >= truncate)
                 """
                   |... message truncated""".stripMargin else ""
-              KMessage(a.offset, a.timestamp, new String(decoded.bytes) + truncStr, a.size, decoder.getName(), decoded.size)})).getOrElse(List())
+              KMessage(a.offset, a.timestamp, new String(decoded.bytes) + truncStr, a.size, decoder.getName(), decoded.size)
+            })).getOrElse(List())
           sender ! writeJson("messages" -> response, callback)
 
         case MessageB(topicName, partition, offset, _) =>
@@ -67,18 +74,20 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderAct
         case m: KMessage[Array[Byte]] => log.info("Unxpected msg " + m.offset)
       }
 
-      def waitingForResponses(respondTo: ActorRef, count: Int, list: List[KMessage[Array[Byte]]], callback: String): Receive =  {
+      def waitingForResponses(respondTo: ActorRef, count: Int, list: List[KMessage[Array[Byte]]], callback: String): Receive = {
         case m: KMessage[Array[Byte]] =>
           log.info("Receive msg: " + m.offset)
-          if(count -1 == 0) {
-            respondTo ! writeJson("messages" -> m::list, callback)
+          log.info("Count " + count)
+          if (count - 1 == 0) {
+            log.info("Responding to client  msgs: " + list.length)
+            respondTo ! writeJson("messages" -> (m :: list), callback)
             unbecome()
           } else {
-            waitingForResponses(respondTo, count -1, m::list, callback)
+            become(waitingForResponses(respondTo, count - 1, m :: list, callback))
           }
 
         case ReceiveTimeout =>
-          respondTo ! List()
+          respondTo ! writeJson("messages" -> List(), callback)
           unbecome()
       }
   }
@@ -86,14 +95,14 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderAct
   def writeJson(obj: Any, callback: String): io.Serializable = {
     callback match {
       case null => write(obj)
-      case _ => new CamelMessage("/**/" + callback + "(" + write(obj) + ")", Map("content-type"->"application/x-javascript"))
+      case _ => new CamelMessage("/**/" + callback + "(" + write(obj) + ")", Map("content-type" -> "application/x-javascript"))
     }
   }
 
   def decode(decoder: Decoder, message: Array[Byte], limit: Int): DecodedMessage = {
     Try(decoder.decode(message, limit)) match {
-      case Success(value) => if(value == null) DecodedMessage(s"${decoder.getName()} returned null".getBytes(),0) else value
-      case Failure(e) => DecodedMessage(s"Unable to decode with ${decoder.getName()}: ${e.getMessage}".getBytes(),0)
+      case Success(value) => if (value == null) DecodedMessage(s"${decoder.getName()} returned null".getBytes(), 0) else value
+      case Failure(e) => DecodedMessage(s"Unable to decode with ${decoder.getName()}: ${e.getMessage}".getBytes(), 0)
     }
   }
 }
