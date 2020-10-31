@@ -114,4 +114,9 @@ object Kafka {
       case e: Throwable => log.error("Unable get message: ", e); None
     }
   }
+
+  private def poll(consumer: KafkaConsumer[Array[Byte], Array[Byte]], offset: Int, count: Int, aggr: List[KMessage[Array[Byte]]]): Unit = {
+    val records = consumer.poll(Duration.ofSeconds(10))
+    val resp = records.iterator().asScala.take(count).map(m => KMessage(m.offset(), new Date(m.timestamp()), m.value(), m.value().length, null, 0)).toList
+  }
 }
