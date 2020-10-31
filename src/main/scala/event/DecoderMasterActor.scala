@@ -26,9 +26,9 @@ class DecoderMasterActor(respondTo: ActorRef, decoderActor: ActorRef, msgType: S
       if (list.nonEmpty) {
         list.foreach(decoderActor ! (msgType,_))
         setReceiveTimeout(30 seconds)
-        become(waitingForResponses(sender, list.length, List(), callback))
+        become(waitingForResponses(respondTo, list.length, List(), callback))
       } else {
-        sender ! writeJson("messages" -> List(), callback)
+        respondTo ! writeJson("messages" -> List(), callback)
       }
   }
 
