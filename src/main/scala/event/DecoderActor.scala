@@ -14,6 +14,7 @@ class DecoderActor(decoders: Map[String, Decoder], limit: Int) extends Actor wit
       val truncStr = if (decoded.bytes.length >= limit)
         """
           |... message truncated""".stripMargin else ""
+      log.info("decoded " + m.offset)
       sender ! KMessage(m.offset, m.timestamp, new String(decoded.bytes) + truncStr, m.size, decoder.getName(), decoded.size)
   }
 

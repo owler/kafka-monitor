@@ -16,7 +16,7 @@ import org.json4s.DefaultFormats
 import scala.util.{Failure, Success, Try}
 import concurrent.duration._
 
-class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder]) extends Actor with ActorLogging {
+class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderActor: ActorRef) extends Actor with ActorLogging {
   import context._
   import scala.language.postfixOps
   private val truncate = conf.getInt("truncate")
@@ -35,7 +35,8 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder]) extends Ac
 
         case Messages(topicName, partition, offset, msgType, callback) =>
           val list = Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10).getOrElse(List())
-          val decoderActor = actorOf(Props(classOf[DecoderActor], decoders, 500).withRouter(FromConfig()), "kafka-decoder")
+
+          log.info("Kafka returns msg: " + list.length)
           list.foreach(decoderActor ! _)
           setReceiveTimeout(30 seconds)
           become(waitingForResponses(sender, list.length, List(), callback))
@@ -63,21 +64,22 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder]) extends Ac
             case None => sender ! ""
             case Some(l) => sender ! decode(decoder, l.head.message, Int.MaxValue).bytes
           }
-
+        case m: KMessage[Array[Byte]] => log.info("Unxpected msg " + m.offset)
       }
 
       def waitingForResponses(respondTo: ActorRef, count: Int, list: List[KMessage[Array[Byte]]], callback: String): Receive =  {
         case m: KMessage[Array[Byte]] =>
+          log.info("Receive msg: " + m.offset)
           if(count -1 == 0) {
             respondTo ! writeJson("messages" -> m::list, callback)
-            context stop self
+            unbecome()
           } else {
             waitingForResponses(respondTo, count -1, m::list, callback)
           }
 
         case ReceiveTimeout =>
           respondTo ! List()
-          context stop self
+          unbecome()
       }
   }
 

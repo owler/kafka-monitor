@@ -95,7 +95,9 @@ object KafkaMonitor {
     val camel = CamelExtension(system).context
     val utfDecoder = new Utf8Decoder()
     val decoders = Map(utfDecoder.getName() -> utfDecoder) ++  PluginManager.loadDecoders(conf.getString("plugin.path"))
-    val monitor = system.actorOf(Props(classOf[KafkaMonitorActor], conf.getConfig, decoders).withRouter(FromConfig()), "kafka-monitor")
+    val decoderActor = system.actorOf(Props(classOf[DecoderActor], decoders, 500).withRouter(FromConfig()), "kafka-decoder")
+    val monitor = system.actorOf(Props(classOf[KafkaMonitorActor], conf.getConfig, decoders, decoderActor).withRouter(FromConfig()), "kafka-monitor")
+
     val registry = new SimpleRegistry()
     registry.put("authHandler", new KSecurityHandler(conf.getConfig.getBoolean("security.enabled")))
     camel.setRegistry(registry)
