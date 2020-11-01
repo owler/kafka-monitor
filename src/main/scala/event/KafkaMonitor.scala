@@ -40,13 +40,13 @@ object KafkaMonitor {
         .get("/{id}/partition/{partition}/offset/{offset}/download").produces("application/octet-stream").to("direct:downloadMessage")
         .get("/{id}/partition/{partition}/offset/{offset}/msgtype/{msgtype}/download").produces("application/octet-stream").to("direct:downloadMessageForType")
 
-      //from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/topic/?matchOnUriPrefix=true").log("icoming client request").to("http://localhost:8877/topic?bridgeEndpoint=true")
+      //from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/topic/?matchOnUriPrefix=true").to("http://localhost:8877/topic?bridgeEndpoint=true")
       from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/?matchOnUriPrefix=true&handlers=authHandler").process(staticProcessor)
 
-//      from("seda:input?limitConcurrentConsumers=false&concurrentConsumers=250").log("incoming request").to("http://localhost:8877/topic?bridgeEndpoint=true")
+//      from("seda:input?limitConcurrentConsumers=false&concurrentConsumers=250").to("http://localhost:8877/topic?bridgeEndpoint=true")
 
       from("direct:listTopics").process((exchange: Exchange) =>
-        exchange.getIn.setBody(ListTopics(exchange.getIn.getHeader("callback", classOf[String])))).log("list topics").to(monitor)
+        exchange.getIn.setBody(ListTopics(exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
 
       from("direct:msgTypes").process((exchange: Exchange) =>
         exchange.getIn.setBody(ListMsgTypes(exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
@@ -68,7 +68,7 @@ object KafkaMonitor {
           exchange.getIn.getHeader("partition", classOf[String]),
           exchange.getIn.getHeader("offset", classOf[String]),
           exchange.getIn.getHeader("msgtype", classOf[String]),
-          exchange.getIn.getHeader("callback", classOf[String])))).log(s"${header("id")}").to(monitor)
+          exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
 
       from("direct:downloadMessage")
         .process((exchange: Exchange) =>

@@ -30,15 +30,12 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderAct
         case TopicDetails(topicName, callback) => sender ! writeJson("partitions" -> Kafka.getTopic(topicName), callback)
 
         case Messages(topicName, partition, offset, msgType, callback) =>
-          log.info("Requested 10 msg: " + topicName)
           val list = Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10).getOrElse(List())
-          log.info("Kafka returns msg: " + list.length)
           val master = actorOf(Props(classOf[DecoderMasterActor], sender, decoderActor, msgType, callback).withDispatcher("decoder-dispatcher"))
           master ! list
 
 
         case Message(topicName, partition, offset, msgType, callback) =>
-          log.info("Request for single message " + offset)
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
           val response = Kafka.getMessage(topicName, partition.toInt, offset.toLong).map(
             _.map(a => {
@@ -48,7 +45,6 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderAct
                   |... message truncated""".stripMargin else ""
               KMessage(a.offset, a.timestamp, new String(decoded.bytes) + truncStr, a.size, decoder.getName(), decoded.size)
             })).getOrElse(List())
-          log.info("Request for single message processed _________ " + offset)
           sender ! writeJson("messages" -> response, callback)
 
         case MessageB(topicName, partition, offset, _) =>
