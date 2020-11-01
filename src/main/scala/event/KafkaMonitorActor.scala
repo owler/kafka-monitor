@@ -31,7 +31,7 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderAct
 
         case Messages(topicName, partition, offset, msgType, callback) =>
           val list = Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10).getOrElse(List())
-          val master = actorOf(Props(classOf[DecoderMasterActor], sender, decoderActor, msgType, callback).withDispatcher("decoder-dispatcher"))
+          val master = actorOf(Props(classOf[DecoderMasterActor], sender, decoderActor, msgType, callback))
           master ! list
 
 
