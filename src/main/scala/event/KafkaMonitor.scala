@@ -23,7 +23,7 @@ object KafkaMonitor {
 
   class CustomRouteBuilder(system: ActorSystem, monitor: ActorRef) extends RouteBuilder {
     override def configure(): Unit = {
-      restConfiguration.component("jetty").host("localhost").port(conf.getConfig.getInt("rest.port"))
+      restConfiguration.component("jetty").host("0.0.0.0").port(conf.getConfig.getInt("http.port"))
         .bindingMode(RestBindingMode.auto)
       //enable CORS if you need to use RedirectProcessor
       /*
@@ -41,7 +41,7 @@ object KafkaMonitor {
         .get("/{id}/partition/{partition}/offset/{offset}/download").produces("application/octet-stream").to("direct:downloadMessage")
         .get("/{id}/partition/{partition}/offset/{offset}/msgtype/{msgtype}/download").produces("application/octet-stream").to("direct:downloadMessageForType")
 
-      from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/topic/?matchOnUriPrefix=true").to("http://localhost:8877/topic?bridgeEndpoint=true")
+      //from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/topic/?matchOnUriPrefix=true").to("http://localhost:8877/topic?bridgeEndpoint=true")
       from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/?matchOnUriPrefix=true&handlers=authHandler").process(staticProcessor)
 
       from("direct:listTopics").process((exchange: Exchange) =>
