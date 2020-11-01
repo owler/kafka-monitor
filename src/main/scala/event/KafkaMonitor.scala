@@ -7,7 +7,7 @@ import akka.camel.{CamelExtension, _}
 import akka.routing.FromConfig
 import event.ext.{PluginManager, Utf8Decoder}
 import event.message.{ListMsgTypes, ListTopics, Message, MessageB, MessageT, Messages, TopicDetails}
-import event.processor.{RedirectProcessor, StaticContentProcessor}
+import event.processor.StaticContentProcessor
 import event.security.KSecurityHandler
 import event.utils.CharmConfigObject
 import org.apache.camel.Exchange
@@ -19,7 +19,7 @@ import org.apache.camel.model.rest.RestBindingMode
 object KafkaMonitor {
   private val conf = CharmConfigObject
   private val staticProcessor = new StaticContentProcessor(conf.getConfig)
-  private val redirectProcessor = new RedirectProcessor()
+  //private val redirectProcessor = new RedirectProcessor()
 
   class CustomRouteBuilder(system: ActorSystem, monitor: ActorRef) extends RouteBuilder {
     override def configure(): Unit = {
