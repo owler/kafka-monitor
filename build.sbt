@@ -31,6 +31,7 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.2"
 
 libraryDependencies += "com.typesafe.akka" %% "akka-actor" % akkaVersion
 libraryDependencies += "com.typesafe.akka" %% "akka-camel" % akkaVersion
+libraryDependencies += "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
 libraryDependencies += "org.apache.camel" % "camel-core" % camelVersion
 libraryDependencies += "org.apache.camel" % "camel-jetty" % camelVersion
 libraryDependencies += "org.apache.camel" % "camel-http" % camelVersion
