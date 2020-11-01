@@ -23,6 +23,7 @@ class DecoderMasterActor(respondTo: ActorRef, decoderActor: ActorRef, msgType: S
   override def receive: Receive = waitingForRequest
   def waitingForRequest: Receive = {
     case list: List[KMessage[Array[Byte]]] =>
+      log.info(">>>>>> Received list " + list.length)
       if (list.nonEmpty) {
         list.foreach(decoderActor ! (msgType,_))
         setReceiveTimeout(30 seconds)
