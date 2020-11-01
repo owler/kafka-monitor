@@ -3,7 +3,7 @@ package event
 import java.io
 import java.text.SimpleDateFormat
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props, ReceiveTimeout}
+import akka.actor.{Actor, ActorLogging, ActorRef, ReceiveTimeout}
 import akka.camel.CamelMessage
 import event.json.KMessage
 import org.json4s.DefaultFormats
