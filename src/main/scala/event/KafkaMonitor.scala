@@ -23,13 +23,15 @@ object KafkaMonitor {
 
   class CustomRouteBuilder(system: ActorSystem, monitor: ActorRef) extends RouteBuilder {
     override def configure(): Unit = {
-      restConfiguration.component("jetty").host("0.0.0.0").port(conf.getConfig.getInt("rest.port"))
+      restConfiguration.component("jetty").host("0.0.0.0").port(conf.getConfig.getInt("http.port"))
         .bindingMode(RestBindingMode.auto)
       //enable CORS if you need to use RedirectProcessor
+/*
               .enableCORS(true) // <-- Important
               .corsAllowCredentials(true) // <-- Important
               .corsHeaderProperty("Access-Control-Allow-Origin","*")
       from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/topic/?matchOnUriPrefix=true").process(redirectProcessor)
+*/
 
       rest("/topic/")
         .get("/list").to("direct:listTopics")
