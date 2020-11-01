@@ -1,10 +1,8 @@
 package event
 
 import akka.actor.{Actor, ActorLogging}
-import event.ext.{DecodedMessage, Decoder}
+import event.ext.Decoder
 import event.json.KMessage
-
-import scala.util.{Failure, Success, Try}
 
 class DecoderActor(decoders: Map[String, Decoder], limit: Int) extends Actor with ActorLogging {
   override def receive: Receive = {
@@ -16,13 +14,6 @@ class DecoderActor(decoders: Map[String, Decoder], limit: Int) extends Actor wit
           |... message truncated""".stripMargin else ""
       log.debug("decoded " + m.offset)
       sender ! KMessage(m.offset, m.timestamp, new String(decoded.bytes) + truncStr, m.size, decoder.getName(), decoded.size)
-  }
-
-  private def decode(decoder: Decoder, message: Array[Byte], limit: Int): DecodedMessage = {
-    Try(decoder.decode(message, limit)) match {
-      case Success(value) => if(value == null) DecodedMessage(s"${decoder.getName()} returned null".getBytes(),0) else value
-      case Failure(e) => DecodedMessage(s"Unable to decode with ${decoder.getName()}: ${e.getMessage}".getBytes(),0)
-    }
   }
 
 }

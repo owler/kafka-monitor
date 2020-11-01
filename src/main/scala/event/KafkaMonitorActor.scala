@@ -1,27 +1,15 @@
 package event
 
-import java.io
-import java.text.SimpleDateFormat
-
-import akka.actor.{Actor, ActorLogging, ActorRef, Props, ReceiveTimeout}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.camel.CamelMessage
 import com.typesafe.config.Config
-import event.ext.{DecodedMessage, Decoder}
+import event.ext.Decoder
 import event.json.{KMessage, MsgType}
 import event.message._
-import org.json4s.DefaultFormats
-import org.json4s.native.Serialization.write
-import scala.util.{Failure, Success, Try}
 
 class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderActor: ActorRef) extends Actor with ActorLogging {
   import context._
   private val truncate = conf.getInt("truncate")
-  private val dataFormat = "yyyy-MM-dd HH:mm:ss.SSS z"
-  private implicit val formats: DefaultFormats = new DefaultFormats {
-    override def dateFormatter = new SimpleDateFormat(dataFormat)
-  }
-
-
   override def receive: Receive = {
     case msg: CamelMessage =>
       msg.body match {
@@ -60,20 +48,6 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderAct
             case Some(l) => sender ! decode(decoder, l.head.message, Int.MaxValue).bytes
           }
       }
-
   }
 
-  def writeJson(obj: Any, callback: String): io.Serializable = {
-    callback match {
-      case null => write(obj)
-      case _ => new CamelMessage("/**/" + callback + "(" + write(obj) + ")", Map("content-type" -> "application/x-javascript"))
-    }
-  }
-
-  def decode(decoder: Decoder, message: Array[Byte], limit: Int): DecodedMessage = {
-    Try(decoder.decode(message, limit)) match {
-      case Success(value) => if (value == null) DecodedMessage(s"${decoder.getName()} returned null".getBytes(), 0) else value
-      case Failure(e) => DecodedMessage(s"Unable to decode with ${decoder.getName()}: ${e.getMessage}".getBytes(), 0)
-    }
-  }
 }
