@@ -13,6 +13,7 @@ import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.slf4j.LoggerFactory
 
+import scala.annotation.tailrec
 import scala.jdk.CollectionConverters._
 import scala.collection.{IterableOnce, mutable}
 
@@ -115,13 +116,18 @@ object Kafka {
     }
   }
 
+  @tailrec
   private def poll(consumer: KafkaConsumer[Array[Byte], Array[Byte]], count: Int, aggr: List[KMessage[Array[Byte]]]): List[KMessage[Array[Byte]]] = {
     if (count <= 0) {
       aggr
     } else {
       val records = consumer.poll(Duration.ofSeconds(10))
       val resp = records.iterator().asScala.take(count).map(m => KMessage(m.offset(), new Date(m.timestamp()), m.value(), m.value().length, null, 0)).toList
-      poll(consumer, count - resp.length , resp ::: aggr)
+      if(resp.isEmpty) {
+        aggr
+      } else {
+        poll(consumer, count - resp.length, resp ::: aggr)
+      }
     }
   }
 }
