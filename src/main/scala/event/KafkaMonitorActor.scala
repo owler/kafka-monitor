@@ -63,7 +63,6 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderAct
             case None => sender ! ""
             case Some(l) => sender ! decode(decoder, l.head.message, Int.MaxValue).bytes
           }
-        case m: KMessage[Array[Byte]] => log.info("Unxpected msg " + m.offset)
       }
 
   }
