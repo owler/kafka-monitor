@@ -40,7 +40,7 @@ class DecoderMasterActor(respondTo: ActorRef, decoderActor: ActorRef, msgType: S
       log.info("Count " + count)
       if (count - 1 == 0) {
         log.info("Responding to client  msgs: " + list.length)
-        respondTo ! writeJson("messages" -> (m :: list), callback)
+        respondTo ! writeJson("messages" -> (m :: list).sortBy(_.offset), callback)
         context stop self
       } else {
         become(waitingForResponses(respondTo, count - 1, m :: list, callback))
