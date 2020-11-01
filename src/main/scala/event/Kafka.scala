@@ -98,14 +98,14 @@ object Kafka {
   def loadFromKafka(topic: String, partition: Int, offset: Long, count: Int = 1): Option[List[KMessage[Array[Byte]]]] = {
     try {
       repo.get(topic).flatMap(
-        _.metadata.get(partition).flatMap(offsets => if (offsets._1 != offsets._2 && offset >= offsets._1 && offset < offsets._2) Some(offset) else None)
-      ) map { verifiedOffset =>
+        _.metadata.get(partition).flatMap(offsets => if (offsets._1 != offsets._2 && offset >= offsets._1 && offset < offsets._2) Some((offset, offsets._2)) else None)
+      ) map { verifiedOffsets =>
         val consumer = createConsumer()
         val tp = new TopicPartition(topic, partition)
         consumer.assign(List(tp).asJava)
-        consumer.seek(tp, verifiedOffset)
-        val records = consumer.poll(Duration.ofSeconds(10))
-        val resp = records.iterator().asScala.take(count).map(m => KMessage(m.offset(), new Date(m.timestamp()), m.value(), m.value().length, null, 0)).toList.take(count)
+        consumer.seek(tp, verifiedOffsets._1)
+        val recount = Math.min(count, verifiedOffsets._2 - verifiedOffsets._1).toInt
+        val resp = poll(consumer, recount, List())
         resp.foreach(m => messageCache += MessagePosition(topic, partition, m.offset) -> m)
         consumer.close()
         resp
@@ -115,8 +115,13 @@ object Kafka {
     }
   }
 
-  private def poll(consumer: KafkaConsumer[Array[Byte], Array[Byte]], offset: Int, count: Int, aggr: List[KMessage[Array[Byte]]]): Unit = {
-    val records = consumer.poll(Duration.ofSeconds(10))
-    val resp = records.iterator().asScala.take(count).map(m => KMessage(m.offset(), new Date(m.timestamp()), m.value(), m.value().length, null, 0)).toList
+  private def poll(consumer: KafkaConsumer[Array[Byte], Array[Byte]], count: Int, aggr: List[KMessage[Array[Byte]]]): List[KMessage[Array[Byte]]] = {
+    if (count <= 0) {
+      aggr
+    } else {
+      val records = consumer.poll(Duration.ofSeconds(10))
+      val resp = records.iterator().asScala.take(count).map(m => KMessage(m.offset(), new Date(m.timestamp()), m.value(), m.value().length, null, 0)).toList
+      poll(consumer, count - resp.length , resp ::: aggr)
+    }
   }
 }
