@@ -19,21 +19,13 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderAct
 
         case Messages(topicName, partition, offset, msgType, callback) =>
           val list = Kafka.getMessage(topicName, partition.toInt, offset.toLong, 10).getOrElse(List())
-          val master = actorOf(Props(classOf[DecoderMasterActor], sender, decoderActor, msgType, callback))
+          val master = actorOf(Props(classOf[DecoderMasterActor], sender, decoderActor, msgType, 500, callback))
           master ! list
 
-
         case Message(topicName, partition, offset, msgType, callback) =>
-          val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
-          val response = Kafka.getMessage(topicName, partition.toInt, offset.toLong).map(
-            _.map(a => {
-              val decoded = decode(decoder, a.message, truncate)
-              val truncStr = if (decoded.bytes.length >= truncate)
-                """
-                  |... message truncated""".stripMargin else ""
-              KMessage(a.offset, a.timestamp, new String(decoded.bytes) + truncStr, a.size, decoder.getName(), decoded.size)
-            })).getOrElse(List())
-          sender ! writeJson("messages" -> response, callback)
+          val list = Kafka.getMessage(topicName, partition.toInt, offset.toLong).getOrElse(List())
+          val master = actorOf(Props(classOf[DecoderMasterActor], sender, decoderActor, msgType, truncate, callback))
+          master ! list
 
         case MessageB(topicName, partition, offset, _) =>
           Kafka.getMessage(topicName, partition.toInt, offset.toLong) match {

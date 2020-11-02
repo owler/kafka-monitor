@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorLogging, ActorRef, ReceiveTimeout}
 import event.json.KMessage
 import concurrent.duration._
 
-class DecoderMasterActor(respondTo: ActorRef, decoderActor: ActorRef, msgType: String, callback: String) extends Actor with ActorLogging {
+class DecoderMasterActor(respondTo: ActorRef, decoderActor: ActorRef, msgType: String, limit: Int, callback: String) extends Actor with ActorLogging {
   import context._
   import scala.language.postfixOps
 
@@ -12,8 +12,8 @@ class DecoderMasterActor(respondTo: ActorRef, decoderActor: ActorRef, msgType: S
   def waitingForRequest: Receive = {
     case list: List[KMessage[Array[Byte]]] =>
       if (list.nonEmpty) {
-        list.foreach(decoderActor ! (msgType,_))
-        setReceiveTimeout(30 seconds)
+        list.foreach(decoderActor ! (msgType, limit, _))
+        setReceiveTimeout(45 seconds)
         become(waitingForResponses(respondTo, list.length, List(), callback))
       } else {
         respondTo ! writeJson("messages" -> List(), callback)

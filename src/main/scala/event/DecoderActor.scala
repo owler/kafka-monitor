@@ -4,9 +4,9 @@ import akka.actor.{Actor, ActorLogging}
 import event.ext.Decoder
 import event.json.KMessage
 
-class DecoderActor(decoders: Map[String, Decoder], limit: Int) extends Actor with ActorLogging {
+class DecoderActor(decoders: Map[String, Decoder]) extends Actor with ActorLogging {
   override def receive: Receive = {
-    case (msgType: String, m: KMessage[Array[Byte]]) =>
+    case (msgType: String, limit: Int, m: KMessage[Array[Byte]]) =>
       val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
       val decoded = decode(decoder, m.message, limit)
       val truncStr = if (decoded.bytes.length >= limit)
