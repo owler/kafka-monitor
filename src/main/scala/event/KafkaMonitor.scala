@@ -26,12 +26,13 @@ object KafkaMonitor {
       restConfiguration.component("jetty").host("0.0.0.0").port(conf.getConfig.getInt("http.port"))
         .bindingMode(RestBindingMode.auto)
       //enable CORS if you need to use RedirectProcessor
-      /*
+/*
               .enableCORS(true) // <-- Important
               .corsAllowCredentials(true) // <-- Important
               .corsHeaderProperty("Access-Control-Allow-Origin","*")
-         from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/topic/?matchOnUriPrefix=true").process(redirectProcessor)
-      */
+      from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/topic/?matchOnUriPrefix=true").process(redirectProcessor)
+*/
+
       rest("/topic/")
         .get("/list").to("direct:listTopics")
         .get("/msgtypes").to("direct:msgTypes")
@@ -43,6 +44,8 @@ object KafkaMonitor {
 
       //from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/topic/?matchOnUriPrefix=true").to("http://localhost:8877/topic?bridgeEndpoint=true")
       from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/?matchOnUriPrefix=true&handlers=authHandler").process(staticProcessor)
+
+//      from("seda:input?limitConcurrentConsumers=false&concurrentConsumers=250").to("http://localhost:8877/topic?bridgeEndpoint=true")
 
       from("direct:listTopics").process((exchange: Exchange) =>
         exchange.getIn.setBody(ListTopics(exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
@@ -95,7 +98,9 @@ object KafkaMonitor {
     val camel = CamelExtension(system).context
     val utfDecoder = new Utf8Decoder()
     val decoders = Map(utfDecoder.getName() -> utfDecoder) ++  PluginManager.loadDecoders(conf.getString("plugin.path"))
-    val monitor = system.actorOf(Props(classOf[KafkaMonitorActor], conf.getConfig, decoders).withRouter(FromConfig()), "kafka-monitor")
+    val decoderActor = system.actorOf(Props(classOf[DecoderActor], decoders).withRouter(FromConfig()), "kafka-decoder")
+    val monitor = system.actorOf(Props(classOf[KafkaMonitorActor], conf.getConfig, decoders, decoderActor).withRouter(FromConfig()), "kafka-monitor")
+
     val registry = new SimpleRegistry()
     registry.put("authHandler", new KSecurityHandler(conf.getConfig.getBoolean("security.enabled")))
     camel.setRegistry(registry)
