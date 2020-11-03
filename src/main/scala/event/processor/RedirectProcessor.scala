@@ -5,6 +5,8 @@ import java.net.InetAddress
 import org.apache.camel.{Exchange, Processor}
 
 class RedirectProcessor extends Processor{
+
+  //this doesn't work  as its returns 127.0.0.1.  Consider get host (and port) from config
   private val host = InetAddress.getLocalHost.getHostAddress
 
   override def process(exchange: Exchange): Unit = {
