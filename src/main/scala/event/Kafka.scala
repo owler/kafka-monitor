@@ -33,7 +33,7 @@ object Kafka {
 
 
   private def createConsumer(props: Properties = new Properties()) = {
-    props.putAll(conf.parse("kafka").transform((_,v) => v.toString).asJava)
+    props.putAll(conf.parse("kafka").asJava)
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
     // Create the consumer using props.
