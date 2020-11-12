@@ -33,7 +33,7 @@ object Kafka {
 
 
   private def createConsumer(props: Properties = new Properties()) = {
-    props.putAll(conf.parse("kafka").transform((_,v) => v.toString).asJava)
+    props.putAll(conf.parse("kafka").asJava)
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
     // Create the consumer using props.
@@ -45,10 +45,26 @@ object Kafka {
       if (rotten()) {
         try {
           val consumer = createConsumer()
+          log.debug("Start refreshing Repo")
           val list = consumer.listTopics().asScala
+          log.debug(s"Found ${list.size} topics")
+
           val tps: List[TopicPartition] = list.flatMap(t => t._2.asScala.map(partitionInfo => new TopicPartition(t._1, partitionInfo.partition()))).toList
-          repo = new ConcurrentHashMap(getTopicInfo(tps, consumer).asJava).asScala
+          repo.clear()
+          repo ++= getTopicInfo(tps, consumer)
+
+          /*
+                    val tmpRepo = new ConcurrentHashMap[String, TopicMetaData]().asScala
+                    list.foreach(t => {
+                      val topicPartitions = t._2.asScala.map(partitionInfo => new TopicPartition(t._1, partitionInfo.partition())).toList
+                      log.debug(s"Getting partition info for ${t._1}")
+                      tmpRepo ++= getTopicInfo(topicPartitions, consumer)
+                    })
+                    repo = tmpRepo
+          */
+
           repoRefreshTimestamp.set(System.currentTimeMillis())
+          log.debug("Repo refreshed")
           consumer.close()
         } catch {
           case e: Throwable => log.error("Unable refresh repo: ", e)
@@ -80,7 +96,9 @@ object Kafka {
 
   private def getTopicInfo(tp: List[TopicPartition], consumer: KafkaConsumer[Array[Byte], Array[Byte]]): Map[String, TopicMetaData] = {
     val startOffsets = consumer.beginningOffsets(tp.asJava).asScala
+    log.debug(s"Extracted ${startOffsets.size} start offsets")
     val endOffsets = consumer.endOffsets(tp.asJava).asScala
+    log.debug(s"Extracted ${endOffsets.size} end offsets")
     startOffsets.groupBy(_._1.topic()).map(x => x._1 -> TopicMetaData(x._1, x._2.map(y => y._1.partition() -> (y._2.toLong, endOffsets(y._1).toLong)).toSortedMap))
   }
 
