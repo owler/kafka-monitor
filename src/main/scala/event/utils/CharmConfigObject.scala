@@ -16,7 +16,10 @@ object CharmConfigObject {
   }
 
   def parse(key: String): Map[String, Any] = {
-    conf.getObject(key).unwrapped().asScala.toMap
+    conf.getObject(key).unwrapped().asScala.mapValuesInPlace((_, v) => v match {
+      case s: String => cryptor.decrypt(s)
+      case _ => v
+    }).toMap
   }
 
 }
