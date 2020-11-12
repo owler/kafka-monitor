@@ -78,7 +78,8 @@ object KafkaMonitor {
             exchange.getIn.getHeader("partition", classOf[String]),
             exchange.getIn.getHeader("offset", classOf[String]),
             exchange.getIn.getHeader("callback", classOf[String])))).to(monitor).convertBodyTo(classOf[Array[Byte]])
-        .setHeader("Content-Disposition", simple("attachment;filename=kafka-msg.bin"))
+        .setHeader("Content-Disposition",
+          simple("attachment;filename=${in.headers[id]}-${in.headers[partition]}-${in.headers[offset]}.bin"))
 
       from("direct:downloadMessageForType")
         .process((exchange: Exchange) =>
@@ -87,8 +88,8 @@ object KafkaMonitor {
             exchange.getIn.getHeader("offset", classOf[String]),
             exchange.getIn.getHeader("msgType", classOf[String]),
             exchange.getIn.getHeader("callback", classOf[String])))).to(monitor).convertBodyTo(classOf[Array[Byte]])
-        .setHeader("Content-Disposition", simple("attachment;filename=kafka-msg.txt"))
-
+        .setHeader("Content-Disposition",
+            simple("attachment;filename=${in.headers[id]}-${in.headers[partition]}-${in.headers[offset]}.txt"))
     }
   }
 
