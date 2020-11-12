@@ -12,6 +12,9 @@ scalaVersion := "2.13.3"
 val camelVersion = "2.25.2"
 val akkaVersion = "2.5.32"
 
+val env = sys.props.getOrElse("env", "dev")
+Compile / resourceDirectory := baseDirectory.value / "resources" / env
+
 scalacOptions ++= Seq("-deprecation")
 
 credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
@@ -57,7 +60,7 @@ pack := {
                     IO.copyFile(srcPath, destPath, preserveLastModified = true)
             }
             IO.copyDirectory(file(".") / "src/bin", dist / "bin")
-            IO.copyDirectory(file(".") / "src/main/resources/", dist / "conf")
+            IO.copyDirectory(file(".") / "src/main/resources" / env, dist / "conf")
             IO.copyDirectory(file(".") / "src/web/", dist / "web")
             IO.copyDirectory(file(".") / "src/plugins/", dist / "plugins")
             IO.createDirectory(dist / "lib/ext")
