@@ -1,5 +1,7 @@
 import sbt.librarymanagement.ArtifactFilter
 
+import scala.annotation.tailrec
+
 publishMavenStyle in ThisBuild := false
 name := "simple-" + baseDirectory.value.getName
 val workaround = {
@@ -47,6 +49,17 @@ libraryDependencies += "org.jasypt" % "jasypt" % "1.9.3"
 libraryDependencies += "org.eclipse.jetty" % "jetty-util" % "9.4.32.v20200930" % Test
 
 
+def processTemplate(f: File, props: Map[String, String]) {
+    @tailrec
+    def processTemplate0(content: String, props: List[(String, String)]): String = {
+        props match {
+            case Nil => content
+            case h::tail => processTemplate0(content.replace(h._1, h._2), tail)
+        }
+    }
+    IO.write(f, processTemplate0(IO.read(f), props.toList))
+}
+
 val pack = taskKey[Unit]("pack")
 pack := {
     (clean.value, update.value, crossTarget.value, (packageBin in Compile).value) match {
@@ -66,5 +79,6 @@ pack := {
             IO.createDirectory(dist / "lib/ext")
             IO.createDirectory(dist / "logs")
             IO.copyFile(jar, dist / "lib" / jar.getName)
+            processTemplate(dist / "web" / "index.html", Map("{env}" -> env.toUpperCase()))
     }
 }
