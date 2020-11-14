@@ -73,21 +73,26 @@ object KafkaMonitor {
           exchange.getIn.getHeader("callback", classOf[String])))).to(monitor)
 
       from("direct:downloadMessage")
-        .process((exchange: Exchange) =>
+        .process((exchange: Exchange) => {
           exchange.getIn.setBody(MessageB(exchange.getIn.getHeader("id", classOf[String]),
             exchange.getIn.getHeader("partition", classOf[String]),
             exchange.getIn.getHeader("offset", classOf[String]),
-            exchange.getIn.getHeader("callback", classOf[String])))).to(monitor).convertBodyTo(classOf[Array[Byte]])
+            exchange.getIn.getHeader("callback", classOf[String])))
+          exchange.getMessage.setHeaders(exchange.getIn.getHeaders)
+        })
+        .to(monitor).convertBodyTo(classOf[Array[Byte]])
         .setHeader("Content-Disposition",
           simple("attachment;filename=${in.headers[id]}-${in.headers[partition]}-${in.headers[offset]}.bin"))
 
       from("direct:downloadMessageForType")
-        .process((exchange: Exchange) =>
+        .process((exchange: Exchange) => {
           exchange.getIn.setBody(MessageT(exchange.getIn.getHeader("id", classOf[String]),
             exchange.getIn.getHeader("partition", classOf[String]),
             exchange.getIn.getHeader("offset", classOf[String]),
             exchange.getIn.getHeader("msgType", classOf[String]),
-            exchange.getIn.getHeader("callback", classOf[String])))).to(monitor).convertBodyTo(classOf[Array[Byte]])
+            exchange.getIn.getHeader("callback", classOf[String])))
+          exchange.getMessage.setHeaders(exchange.getIn.getHeaders)
+        }).to(monitor).convertBodyTo(classOf[Array[Byte]])
         .setHeader("Content-Disposition",
             simple("attachment;filename=${in.headers[id]}-${in.headers[partition]}-${in.headers[offset]}.txt"))
     }

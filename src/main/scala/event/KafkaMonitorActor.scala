@@ -29,15 +29,15 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderAct
 
         case MessageB(topicName, partition, offset, _) =>
           Kafka.getMessage(topicName, partition.toInt, offset.toLong) match {
-            case None => sender ! Array[Byte]()
-            case Some(l) => sender ! l.head.message
+            case None => sender ! new CamelMessage(Array[Byte](), msg.getHeaders)
+            case Some(l) => sender ! new CamelMessage(l.head.message, msg.getHeaders)
           }
 
         case MessageT(topicName, partition, offset, msgType, _) =>
           val decoder = decoders.getOrElse(msgType, decoders("UTF8"))
           Kafka.getMessage(topicName, partition.toInt, offset.toLong) match {
-            case None => sender ! ""
-            case Some(l) => sender ! decode(decoder, l.head.message, Int.MaxValue).bytes
+            case None => sender ! new CamelMessage("", msg.getHeaders)
+            case Some(l) => sender ! new CamelMessage(decode(decoder, l.head.message, Int.MaxValue).bytes, msg.getHeaders)
           }
       }
   }
