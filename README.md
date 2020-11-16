@@ -16,6 +16,7 @@
 
 # Build
 sbt pack
+
 sbt "-Denv=sit" pack
 
 # Plugins
