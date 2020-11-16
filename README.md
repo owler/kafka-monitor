@@ -16,6 +16,7 @@
 
 # Build
 sbt pack
+sbt "-Denv=sit" pack
 
 # Plugins
 Implement your custom Decoder and put jar with single class into plugins folder.
