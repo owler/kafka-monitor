@@ -358,10 +358,13 @@
                 var tr = $('.k-detail-cell tbody tr');
                 tr.click(function () {
                     var  id = $(this).find('#id').text().split(":");
+                    var startOffset=parseInt(id[2]);
+                    var endOffset=parseInt(id[3] - 10);
+                    var offset = Math.max(startOffset, endOffset);
                     $("#topic2search").val(id[0]);
                     $("#partition2search").val(id[1]);
-                    $("#offset2search").val(id[2]);
-                    $("#selectedOffset2search").val(id[2]);
+                    $("#offset2search").val(offset);
+                    $("#selectedOffset2search").val(offset);
                     $("#showMessage").empty();
                     search();
                 });
@@ -391,7 +394,7 @@
                     sortable: true,
                     pageable: false,
                     columns: [
-                        { hidden: true, template:"<span style='display: none' id='id'>#= topic #:#= partition #:#= start #</span>"},
+                        { hidden: true, template:"<span style='display: none' id='id'>#= topic #:#= partition #:#= start #:#= end #</span>"},
                         { field: "partition", title: "partition", width: "37px" },
                         { field: "start", title:"start offset", width: "50px" },
                         { field: "end", title:"end offset", width:"50px" }
