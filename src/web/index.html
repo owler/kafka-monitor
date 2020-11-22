@@ -354,8 +354,10 @@
                 });
             }
 
-            function injectDetailRowEvent() {
-                var tr = $('.k-detail-cell tbody tr');
+            function injectDetailRowEvent(e) {
+                var grid = e.sender;
+                var tr = grid.tbody.find("tr");
+                //var tr = $('.k-detail-cell tbody tr');
                 tr.click(function () {
                     var  id = $(this).find('#id').text().split(":");
                     var startOffset=parseInt(id[2]);
