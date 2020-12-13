@@ -312,7 +312,7 @@
                         {title: "Timestamp", width:220, field: "timestamp"},
                         {title: "Message", field: "message", width:"100%"},
                         {title: "byte[]", width:90, template:"<a class='a_download' onclick='location.href=downloadMsg(#= offset #)'>#= Math.round(size/100)/10 # Kb</a>"},
-                        {title: "Download", width:130, template:"#= msgtype #: <a class='a_download' onclick='location.href=downloadMsgForType(#= offset # , \"#= msgtype #\")'>#= Math.round(msgsize/100)/10 # Kb</a>"}
+                        {title: "Download", width:170, template:"#= msgtype #: <a class='a_download' onclick='location.href=downloadMsgForType(#= offset # , \"#= msgtype #\")'>#= Math.round(msgsize/100)/10 # Kb</a>"}
                     ],
                     scrollable: true,
                     dataSource: messageDataSource,
