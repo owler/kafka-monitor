@@ -17,6 +17,11 @@
     <br/>
     <div id="content">
         <style scoped>
+            #horizontal {
+                    width:97vw;
+                    height:800px;
+                    margin: 0 auto;
+            }
 
             #messageList, #gridTasks {
                 border-collapse: separate;
@@ -33,7 +38,6 @@
                 border-style: solid;
                 border-color: #d75b26 #d75b26 #d75b26 #f28455;
                 font-size: 12px;
-
             }
 
             #gridTasks td, #controls td{
@@ -87,16 +91,12 @@
             }
 
         </style>
-        <table border="0" style="table-layout:fixed; width:97vw;height:800px;">
-            <tr>
-                <td rowspan="3" valign="top" style="width:420px;">
-                    <div id="gridTasks" style="width:100%;height:100%;"></div>
-                </td>
-                <td rowspan="3" style="width:6px;">
-                    &nbsp;
-                </td>
-
-                <td>
+        <div id="horizontal" >
+            <div style="width:420px;">
+                <div id="gridTasks" style="width:100%;height:100%;"></div>
+            </div>
+            <div>
+                <div>
                     <table id="controls" border="0">
                         <tr><td>&nbsp;</td><td>partition</td><td>start from</td><td>type</td><td style="width:100%">topic</td></tr>
                         <tr>
@@ -122,10 +122,8 @@
                             </td>
                         </tr>
                     </table>
-                </td>
-            </tr>
-            <tr >
-                <td><div style="height:750px; ">
+                </div>
+                <div style="height:750px; ">
                     <div id="messageList" ></div><br/>
                     <table id="msgInfo"><tr>
                         <td>
@@ -149,11 +147,9 @@
                     </table>
                     <div id="showMessage" style="width:100%;"></div>
                 </div>
-                </td>
-            </tr>
-        </table>
-
-        <script>
+            </div>
+        </div>
+            <script>
 
            function formatMsg(o) {
                $("#showMessage").css("white-space", o.value);
@@ -312,7 +308,7 @@
                         {title: "Timestamp", width:220, field: "timestamp"},
                         {title: "Message", field: "message", width:"100%"},
                         {title: "byte[]", width:90, template:"<a class='a_download' onclick='location.href=downloadMsg(#= offset #)'>#= Math.round(size/100)/10 # Kb</a>"},
-                        {title: "Download", width:170, template:"#= msgtype #: <a class='a_download' onclick='location.href=downloadMsgForType(#= offset # , \"#= msgtype #\")'>#= Math.round(msgsize/100)/10 # Kb</a>"}
+                        {title: "Download", width:130, template:"#= msgtype #: <a class='a_download' onclick='location.href=downloadMsgForType(#= offset # , \"#= msgtype #\")'>#= Math.round(msgsize/100)/10 # Kb</a>"}
                     ],
                     scrollable: true,
                     dataSource: messageDataSource,
@@ -321,6 +317,13 @@
             }
 
             function initControls() {
+              $("#horizontal").kendoSplitter({
+                        panes: [
+                            { collapsible: true },
+                            { collapsible: false },
+                            { collapsible: true}
+                        ]
+                    });
              $("#messageTypeComboBox").kendoDropDownList({
                         dataTextField: "msgtype",
                         dataValueField: "msgtype",
@@ -354,10 +357,8 @@
                 });
             }
 
-            function injectDetailRowEvent(e) {
-                var grid = e.sender;
-                var tr = grid.tbody.find("tr");
-                //var tr = $('.k-detail-cell tbody tr');
+            function injectDetailRowEvent() {
+                var tr = $('.k-detail-cell tbody tr');
                 tr.click(function () {
                     var  id = $(this).find('#id').text().split(":");
                     var startOffset=parseInt(id[2]);
@@ -421,7 +422,7 @@
                 }
             }
         </script>
+        </div>
     </div>
-</div>
 </body>
 </html>
