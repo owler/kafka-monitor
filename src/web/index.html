@@ -92,7 +92,7 @@
 
         </style>
         <div id="horizontal" >
-            <div style="width:420px;">
+            <div>
                 <div id="gridTasks" style="width:100%;height:100%;"></div>
             </div>
             <div>
@@ -319,9 +319,8 @@
             function initControls() {
               $("#horizontal").kendoSplitter({
                         panes: [
-                            { collapsible: true },
-                            { collapsible: false },
-                            { collapsible: true}
+                            { collapsible: true, size: "420px" },
+                            { collapsible: false }
                         ]
                     });
              $("#messageTypeComboBox").kendoDropDownList({
