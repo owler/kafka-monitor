@@ -8,16 +8,17 @@
     <link href="source/styles/kendo.default.min.css" rel="stylesheet"/>
     <script src="source/js/jquery.min.js"></script>
     <script src="source/js/kendo.web.min.js"></script>
-</head>
-<body>
-<div id="wrapper">
-    <div id="header">
-        <h1>Kafka monitor UI: {env}</h1>
-    </div>
-    <br/>
-    <div id="content">
-        <style scoped>
-
+    <style>
+            #horizontal {
+                width:97vw;
+                height: calc(100% - 56px);
+                color: #0d2d2d;
+                border-width: 0px;
+                border-style: solid;
+                border-color: #f4f4f4 #d6d6d6 #d6d6d6 #f4f4f4;
+                font-size: 12px;
+                background-color: #F5F5E7;
+            }
             #messageList, #gridTasks {
                 border-collapse: separate;
                 border-spacing: 0;
@@ -87,73 +88,7 @@
             }
 
         </style>
-        <table border="0" style="table-layout:fixed; width:97vw;height:800px;">
-            <tr>
-                <td rowspan="3" valign="top" style="width:420px;">
-                    <div id="gridTasks" style="width:100%;height:100%;"></div>
-                </td>
-                <td rowspan="3" style="width:6px;">
-                    &nbsp;
-                </td>
-
-                <td>
-                    <table id="controls" border="0">
-                        <tr><td>&nbsp;</td><td>partition</td><td>start from</td><td>type</td><td style="width:100%">topic</td></tr>
-                        <tr>
-                            <td>
-                                <button id="submit" onclick="search()">Search</button>
-                            </td>
-
-                            <td>
-                                <input id="partition2search" style="width:50px;" value="0" disabled/>
-                            </td>
-
-                            <td>
-                                <input id="offset2search" style="width:150px;" value="0" onkeyup="key_up(event)"/>
-                                <input id="selectedOffset2search" type="hidden" value="0" disabled/>
-                            </td>
-                            <td>
-                                <select id="messageTypeComboBox">
-                                    <option>UTF8</option>
-                                </select>
-                            </td>
-                            <td>
-                                <input id="topic2search" style="width:100%;" value=" " disabled/>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-            <tr >
-                <td><div style="height:750px; ">
-                    <div id="messageList" ></div><br/>
-                    <table id="msgInfo"><tr>
-                        <td>
-                            <div class="radio-toolbar" >
-                                <input type="radio" id="radioNorm" name="radioFruit" value="pre" checked onchange="formatMsg(this)">
-                                <label for="radioNorm">norm</label>
-
-                                <input type="radio" id="radioWrap" name="radioFruit" value="pre-line" onchange="formatMsg(this)">
-                                <label for="radioWrap">wrap</label>
-
-                                <!--
-                                                                <input type="radio" id="radioJson" name="radioFruit" value="pre" onchange="formatMsg(this)">
-                                                                <label for="radioJson">json</label>
-                                -->
-                            </div>
-                        </td>
-                        <td style="width:100%;">
-                            <div id="messageInfo" style="width:100%;background-color: #9BBB38; color:#222;font-size: 12px; text-align:right;"></div>
-                        </td>
-                    </tr>
-                    </table>
-                    <div id="showMessage" style="width:100%;"></div>
-                </div>
-                </td>
-            </tr>
-        </table>
-
-        <script>
+    <script>
 
            function formatMsg(o) {
                $("#showMessage").css("white-space", o.value);
@@ -312,7 +247,7 @@
                         {title: "Timestamp", width:220, field: "timestamp"},
                         {title: "Message", field: "message", width:"100%"},
                         {title: "byte[]", width:90, template:"<a class='a_download' onclick='location.href=downloadMsg(#= offset #)'>#= Math.round(size/100)/10 # Kb</a>"},
-                        {title: "Download", width:170, template:"#= msgtype #: <a class='a_download' onclick='location.href=downloadMsgForType(#= offset # , \"#= msgtype #\")'>#= Math.round(msgsize/100)/10 # Kb</a>"}
+                        {title: "Download", width:130, template:"#= msgtype #: <a class='a_download' onclick='location.href=downloadMsgForType(#= offset # , \"#= msgtype #\")'>#= Math.round(msgsize/100)/10 # Kb</a>"}
                     ],
                     scrollable: true,
                     dataSource: messageDataSource,
@@ -321,6 +256,12 @@
             }
 
             function initControls() {
+              $("#horizontal").kendoSplitter({
+                        panes: [
+                            { collapsible: true, size: "400px", scrollable: false },
+                            { collapsible: false, scrollable: false }
+                        ]
+                    });
              $("#messageTypeComboBox").kendoDropDownList({
                         dataTextField: "msgtype",
                         dataValueField: "msgtype",
@@ -354,10 +295,8 @@
                 });
             }
 
-            function injectDetailRowEvent(e) {
-                var grid = e.sender;
-                var tr = grid.tbody.find("tr");
-                //var tr = $('.k-detail-cell tbody tr');
+            function injectDetailRowEvent() {
+                var tr = $('.k-detail-cell tbody tr');
                 tr.click(function () {
                     var  id = $(this).find('#id').text().split(":");
                     var startOffset=parseInt(id[2]);
@@ -421,7 +360,69 @@
                 }
             }
         </script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header" style="height:25px;">
+        <h1>Kafka monitor UI: {env}</h1>
     </div>
+    <div style="height:6px;"></div>
+    <div id="horizontal">
+        <div id="gridTasks" style="width:100%;height:100%;"></div>
+        <div style="margin: 6px;">
+            <table id="controls" border="0">
+                <tr><td>&nbsp;</td><td>partition</td><td>start from</td><td>type</td><td style="width:100%">topic</td></tr>
+                <tr>
+                    <td>
+                        <button id="submit" onclick="search()">Search</button>
+                    </td>
+
+                    <td>
+                        <input id="partition2search" style="width:50px;" value="0" disabled/>
+                    </td>
+
+                    <td>
+                        <input id="offset2search" style="width:150px;" value="0" onkeyup="key_up(event)"/>
+                        <input id="selectedOffset2search" type="hidden" value="0" disabled/>
+                    </td>
+                    <td>
+                        <select id="messageTypeComboBox">
+                            <option>UTF8</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input id="topic2search" style="width:100%;" value=" " disabled/>
+                    </td>
+                </tr>
+            </table>
+            <div style="height:100%; ">
+                <div id="messageList" ></div><br/>
+                <table id="msgInfo">
+                    <tr>
+                        <td>
+                            <div class="radio-toolbar" >
+                                <input type="radio" id="radioNorm" name="radioFruit" value="pre" checked onchange="formatMsg(this)">
+                                <label for="radioNorm">norm</label>
+
+                                <input type="radio" id="radioWrap" name="radioFruit" value="pre-line" onchange="formatMsg(this)">
+                                <label for="radioWrap">wrap</label>
+
+                                <!--
+                                                                <input type="radio" id="radioJson" name="radioFruit" value="pre" onchange="formatMsg(this)">
+                                                                <label for="radioJson">json</label>
+                                -->
+                            </div>
+                        </td>
+                        <td style="width:100%;">
+                            <div id="messageInfo" style="width:100%;background-color: #9BBB38; color:#222;font-size: 12px; text-align:right;"></div>
+                        </td>
+                    </tr>
+                </table>
+                <div id="showMessage" style="width:100%;"></div>
+            </div>
+        </div>
+    </div>
+
 </div>
 </body>
 </html>
