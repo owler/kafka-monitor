@@ -4,16 +4,25 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.camel.CamelMessage
 import com.typesafe.config.Config
 import event.ext.Decoder
-import event.json.{KMessage, MsgType}
+import event.json.{KMessage, MsgType, Topic}
 import event.message._
 
 class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderActor: ActorRef) extends Actor with ActorLogging {
   import context._
   private val truncate = conf.getInt("truncate")
+
+  def tryWithError(f:() => Any): Any = {
+    try {
+      f()
+    } catch {
+      case e: Throwable =>
+        "errors" -> List(e.getMessage)
+    }
+  }
   override def receive: Receive = {
     case msg: CamelMessage =>
       msg.body match {
-        case ListTopics(callback) => sender ! writeJson("topics" -> Kafka.getTopics, callback)
+        case ListTopics(callback) => sender ! writeJson(tryWithError(()=>"topics" -> Kafka.getTopics), callback)
         case ListMsgTypes(callback) => sender ! writeJson("msgtypes" -> decoders.map(d => MsgType(d._1)).toList, callback)
         case TopicDetails(topicName, callback) => sender ! writeJson("partitions" -> Kafka.getTopic(topicName), callback)
 

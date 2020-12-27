@@ -29,7 +29,7 @@ object Kafka {
   private var repo = new ConcurrentHashMap[String, TopicMetaData]().asScala
   private val repoRefreshTimestamp = new AtomicLong(0)
   private val messageCache = LRUCache[MessagePosition, KMessage[Array[Byte]]](conf.getConfig.getInt("cache.size"))
-  refreshRepo()
+  //refreshRepo()
 
 
   private def createConsumer(props: Properties = new Properties()) = {
@@ -43,7 +43,6 @@ object Kafka {
   private def refreshRepo(): Unit = {
     repo.synchronized {
       if (rotten()) {
-        try {
           val consumer = createConsumer()
           log.debug("Start refreshing Repo")
           val list = consumer.listTopics().asScala
@@ -66,9 +65,6 @@ object Kafka {
           repoRefreshTimestamp.set(System.currentTimeMillis())
           log.debug("Repo refreshed")
           consumer.close()
-        } catch {
-          case e: Throwable => log.error("Unable refresh repo: ", e)
-        }
       }
     }
   }

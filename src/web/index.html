@@ -157,12 +157,20 @@
                 }
             };
 
+           function dataSource_error(e) {
+              console.log("Error event handler", e);
+              var popupNotification = $("#popupNotification").kendoNotification().data("kendoNotification");
+              popupNotification.show(e, "error");
+            }
 
             var tasksDataSource = new kendo.data.DataSource({
                 transport: transport,
                 //data: data,
                 schema: {
                     data: "topics"
+                },
+                error: function(e) {
+                    dataSource_error(e.errors[0]);
                 }
             });
 
@@ -256,6 +264,8 @@
             }
 
             function initControls() {
+              var popupNotification = $("#popupNotification").kendoNotification().data("kendoNotification");
+
               $("#horizontal").kendoSplitter({
                         panes: [
                             { collapsible: true, size: "400px", scrollable: false },
@@ -422,7 +432,7 @@
             </div>
         </div>
     </div>
-
 </div>
+<span id="popupNotification"></span>
 </body>
 </html>
