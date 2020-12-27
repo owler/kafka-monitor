@@ -92,8 +92,8 @@
     <script id="errorTemplate" type="text/x-kendo-template">
         <div class="wrong-pass">
 <!--            <img src="../content/web/notification/error-icon.png" />-->
-            <h3>#= title #</h3>
-            <p style="white-space: pre">#= message #</p>
+            <h3 style="color: red; padding: 8px 8px;">#= title #</h3>
+            <p style="white-space: pre; padding: 8px 8px;">#= message #</p>
         </div>
     </script>
 
@@ -169,7 +169,7 @@
            function dataSource_error(e) {
               console.log("Error event handler", e);
               //var popupNotification = $("#popupNotification").kendoNotification().data("kendoNotification");
-              popupNotification.show({title: "Error", message: e}, "error");
+              popupNotification.show({title: "Error", message: e.substring(0. 3000) + "\n... See full error message in the console log"}, "error");
             }
 
             var tasksDataSource = new kendo.data.DataSource({
