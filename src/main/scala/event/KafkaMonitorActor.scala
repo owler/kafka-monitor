@@ -7,6 +7,8 @@ import event.ext.Decoder
 import event.json.{KMessage, MsgType, Topic}
 import event.message._
 
+import java.io.{PrintWriter, StringWriter}
+
 class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderActor: ActorRef) extends Actor with ActorLogging {
   import context._
   private val truncate = conf.getInt("truncate")
@@ -16,9 +18,14 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderAct
       f()
     } catch {
       case e: Throwable =>
-        "errors" -> List(e.getMessage)
+        log.error(e, "Errors")
+        val sw = new StringWriter()
+        val pw = new PrintWriter(sw)
+        e.printStackTrace(pw)
+        "errors" -> List(sw.toString)
     }
   }
+
   override def receive: Receive = {
     case msg: CamelMessage =>
       msg.body match {
