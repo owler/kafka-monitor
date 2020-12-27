@@ -5,6 +5,8 @@ body {
 	font-size: 78%;
 	font-family: "Lucida Grande", "Lucida Sans Unicode", Verdana, Arial, sans-serif;
 	color: #333;
+	overflow: hidden;
+	scrollbar-width: none;
 }
 
 .desc {
