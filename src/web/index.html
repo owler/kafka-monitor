@@ -168,8 +168,8 @@
 
            function dataSource_error(e) {
               console.log("Error event handler", e);
-              var popupNotification = $("#popupNotification").kendoNotification().data("kendoNotification");
-              popupNotification.show(e, "error");
+              //var popupNotification = $("#popupNotification").kendoNotification().data("kendoNotification");
+              popupNotification.show({title: "Error", message: e}, "error");
             }
 
             var tasksDataSource = new kendo.data.DataSource({
@@ -271,9 +271,9 @@
                     dataBound:  injectMessageRowEvent
                 });
             }
-
+var popupNotification = null;
             function initControls() {
-              var popupNotification = $("#popupNotification").kendoNotification({
+                popupNotification = $("#popupNotification").kendoNotification({
                 position: {
                     pinned: true,
                     top: 30,
