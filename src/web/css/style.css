@@ -401,3 +401,18 @@ table.list caption {font: bold 11px tahoma; border: 1px solid #999; border-width
    background-color: #a1c33a;
    border-color: #444;
 }
+#submit {
+   font-family: sans-serif, Arial;
+   font-size: 13px;
+   border: 1px solid #444;
+   border-radius: 2px;
+
+}
+
+#submit:hover {
+   background-color: #bad76f;
+}
+
+#submit:active {
+   background-color: #a1c33a;
+}
