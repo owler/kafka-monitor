@@ -169,7 +169,7 @@
            function dataSource_error(e) {
               console.log("Error event handler", e);
               //var popupNotification = $("#popupNotification").kendoNotification().data("kendoNotification");
-              popupNotification.show({title: "Error", message: e.substring(0. 3000) + "\n... See full error message in the console log"}, "error");
+              popupNotification.show({title: "Error", message: e.substring(0, 3000) + "\n... See full error message in the console log"}, "error");
             }
 
             var tasksDataSource = new kendo.data.DataSource({
