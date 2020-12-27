@@ -88,6 +88,15 @@
             }
 
         </style>
+
+    <script id="errorTemplate" type="text/x-kendo-template">
+        <div class="wrong-pass">
+<!--            <img src="../content/web/notification/error-icon.png" />-->
+            <h3>#= title #</h3>
+            <p style="white-space: pre">#= message #</p>
+        </div>
+    </script>
+
     <script>
 
            function formatMsg(o) {
@@ -264,7 +273,20 @@
             }
 
             function initControls() {
-              var popupNotification = $("#popupNotification").kendoNotification().data("kendoNotification");
+              var popupNotification = $("#popupNotification").kendoNotification({
+                position: {
+                    pinned: true,
+                    top: 30,
+                    right: 30
+                },
+                autoHideAfter: 0,
+                stacking: "down",
+                templates: [{
+                    type: "error",
+                    template: $("#errorTemplate").html()
+                }]
+
+            }).data("kendoNotification");
 
               $("#horizontal").kendoSplitter({
                         panes: [
@@ -433,6 +455,6 @@
         </div>
     </div>
 </div>
-<span id="popupNotification"></span>
+<span id="popupNotification" style="display:none;"></span>
 </body>
 </html>
