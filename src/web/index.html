@@ -166,10 +166,10 @@
                 }
             };
 
-           function dataSource_error(e) {
+           function dataSource_error(cause, e) {
               console.log("Error event handler", e);
               //var popupNotification = $("#popupNotification").kendoNotification().data("kendoNotification");
-              popupNotification.show({title: "Error", message: e.substring(0, 3000) + "\n... See full error message in the console log"}, "error");
+              popupNotification.show({title: "Error", message: cause + "\n... See full error message in the console log"}, "error");
             }
 
             var tasksDataSource = new kendo.data.DataSource({
@@ -179,7 +179,7 @@
                     data: "topics"
                 },
                 error: function(e) {
-                    dataSource_error(e.errors[0]);
+                    dataSource_error(e.errors[0], e.errors[1]);
                 }
             });
 

@@ -13,6 +13,11 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderAct
   import context._
   private val truncate = conf.getInt("truncate")
 
+  def getCause(e: Throwable, acc: String): String = {
+    if (e == null) acc
+    else getCause(e.getCause, acc + "\n" + e.getMessage)
+  }
+
   def tryWithError(f:() => Any): Any = {
     try {
       f()
@@ -22,7 +27,7 @@ class KafkaMonitorActor(conf: Config, decoders: Map[String, Decoder], decoderAct
         val sw = new StringWriter()
         val pw = new PrintWriter(sw)
         e.printStackTrace(pw)
-        "errors" -> List(sw.toString)
+        "errors" -> List(getCause(e.getCause, e.getMessage), sw.toString)
     }
   }
 
