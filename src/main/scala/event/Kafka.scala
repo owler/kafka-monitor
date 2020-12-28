@@ -29,8 +29,6 @@ object Kafka {
   private var repo = new ConcurrentHashMap[String, TopicMetaData]().asScala
   private val repoRefreshTimestamp = new AtomicLong(0)
   private val messageCache = LRUCache[MessagePosition, KMessage[Array[Byte]]](conf.getConfig.getInt("cache.size"))
-  //refreshRepo()
-
 
   private def createConsumer(props: Properties = new Properties()) = {
     props.putAll(conf.parse("kafka").asJava)
