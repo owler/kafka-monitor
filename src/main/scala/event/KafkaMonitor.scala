@@ -23,7 +23,9 @@ object KafkaMonitor {
 
   class CustomRouteBuilder(system: ActorSystem, monitor: ActorRef) extends RouteBuilder {
     override def configure(): Unit = {
+      val contextPath = conf.getString("contextPath")
       restConfiguration.component("jetty").host("0.0.0.0").port(conf.getConfig.getInt("http.port"))
+        .contextPath(contextPath)
         .bindingMode(RestBindingMode.auto)
       //enable CORS if you need to use RedirectProcessor
 /*
@@ -43,7 +45,7 @@ object KafkaMonitor {
         .get("/{id}/partition/{partition}/offset/{offset}/msgtype/{msgtype}/download").produces("application/octet-stream").to("direct:downloadMessageForType")
       // bridge unfortunately creates bottleneck  and all threads have to wait until one process requests
       //from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/topic/?matchOnUriPrefix=true").to("http://localhost:8877/topic?bridgeEndpoint=true")
-      from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/?matchOnUriPrefix=true&handlers=authHandler").process(staticProcessor)
+      from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + contextPath + "?matchOnUriPrefix=true&handlers=authHandler").process(staticProcessor)
 
 //      from("seda:input?limitConcurrentConsumers=false&concurrentConsumers=250").to("http://localhost:8877/topic?bridgeEndpoint=true")
 

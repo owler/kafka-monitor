@@ -112,7 +112,7 @@
 
             var transportMsgTypes = {
                read: {
-                    url: "/topic/msgtypes",
+                    url: "topic/msgtypes",
                     dataType: "jsonp",
                     jsonp: "callback",
                     cache: false
@@ -121,7 +121,7 @@
 
             var transport = {
                 read: {
-                    url: "/topic/list",
+                    url: "topic/list",
                     dataType: "jsonp",
                     jsonp: "callback",
                     cache: false
@@ -130,7 +130,7 @@
 
             var transportDetails = {
                 read: {
-                    url: "/topic/details",
+                    url: "topic/details",
                     dataType: "jsonp",
                     jsonp: "callback",
                     cache: false
@@ -140,7 +140,7 @@
             var transportForMessage = {
                 read:{
                     url: function(data) {
-                        return  "/topic/" +$("#topic2search").val()
+                        return  "topic/" +$("#topic2search").val()
                             + "/partition/" + $("#partition2search").val()
                             + "/offset/" + $("#offset2search").val()
                             + "/msgtype/" + $("#messageTypeComboBox").val()
@@ -155,7 +155,7 @@
             var transport2ForMessage = {
                 read:{
                     url: function(data) {
-                        return  "/topic/" + $("#topic2search").val()
+                        return  "topic/" + $("#topic2search").val()
                             + "/partition/" + $("#partition2search").val()
                             + "/offset/" + $("#selectedOffset2search").val()
                             + "/msgtype/" + $("#messageTypeComboBox").val();
@@ -245,13 +245,13 @@
             }
 
             function downloadMsg(id) {
-                return  "/topic/" + $("#topic2search").val()
+                return  "topic/" + $("#topic2search").val()
                     + "/partition/" + $("#partition2search").val()
                     + "/offset/" + id
                     + "/download";
             }
             function downloadMsgForType(id, msgType) {
-                return  "/topic/" + $("#topic2search").val()
+                return  "topic/" + $("#topic2search").val()
                     + "/partition/" + $("#partition2search").val()
                     + "/offset/" + id
                     + "/msgtype/" + msgType
@@ -264,7 +264,7 @@
                         {title: "Timestamp", width:220, field: "timestamp"},
                         {title: "Message", field: "message", width:"100%"},
                         {title: "byte[]", width:90, template:"<a class='a_download' onclick='location.href=downloadMsg(#= offset #)'>#= Math.round(size/100)/10 # Kb</a>"},
-                        {title: "Download", width:130, template:"#= msgtype #: <a class='a_download' onclick='location.href=downloadMsgForType(#= offset # , \"#= msgtype #\")'>#= Math.round(msgsize/100)/10 # Kb</a>"}
+                        {title: "Download", width:175, template:"#= msgtype #: <a class='a_download' onclick='location.href=downloadMsgForType(#= offset # , \"#= msgtype #\")'>#= Math.round(msgsize/100)/10 # Kb</a>"}
                     ],
                     scrollable: true,
                     dataSource: messageDataSource,

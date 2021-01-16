@@ -17,10 +17,10 @@ class StaticContentProcessor(conf: Config) extends Processor {
     val in = exchange.getIn
 
     var relativePath = in.getHeader(Exchange.HTTP_PATH, classOf[String]).replaceAll("/+", "/")
-    val requestPath = in.getHeader("CamelServletContextPath", classOf[String]) //CamelServletContextPath
+    val requestPath = in.getHeader("CamelServletContextPath", classOf[String])
     if (relativePath.isEmpty || relativePath == "/") relativePath = "index.html"
 
-    val formattedPath = String.format("%s/%s", requestPath, relativePath).replaceAll("/+", "/")
+    val formattedPath = String.format("/%s", relativePath).replaceAll("/+", "/")
     log.debug("trying " + formattedPath)
 
     val out = exchange.getMessage()
