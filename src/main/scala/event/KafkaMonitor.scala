@@ -1,14 +1,13 @@
 package event
 
 import java.util.Date
-
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.camel.{CamelExtension, _}
 import akka.routing.FromConfig
 import event.ext.{PluginManager, Utf8Decoder}
 import event.message.{ListMsgTypes, ListTopics, Message, MessageB, MessageT, Messages, TopicDetails}
 import event.processor.StaticContentProcessor
-import event.security.KSecurityHandler
+import event.security.{KSecurityHandler, WebSSOHandler}
 import event.utils.CharmConfigObject
 import org.apache.camel.Exchange
 import org.apache.camel.builder.RouteBuilder
@@ -110,7 +109,11 @@ object KafkaMonitor {
     val monitor = system.actorOf(Props(classOf[KafkaMonitorActor], conf.getConfig, decoders, decoderActor).withRouter(FromConfig()), "kafka-monitor")
 
     val registry = new SimpleRegistry()
-    registry.put("authHandler", new KSecurityHandler(conf.getConfig.getBoolean("security.enabled")))
+    //registry.put("authHandler", new KSecurityHandler(conf.getConfig.getBoolean("security.enabled")))
+    registry.put("authHandler", new WebSSOHandler(conf.getConfig.getBoolean("security.enabled")))
+/*    val r = new org.eclipse.jetty.server.handler.ResourceHandler()
+    r.setResourceBase("../web")
+    registry.put("authHandler", r)*/
     camel.setRegistry(registry)
 
     camel.addRoutes(new CustomRouteBuilder(system, monitor))
