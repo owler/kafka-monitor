@@ -1,37 +1,52 @@
-## Welcome to GitHub Pages
+# kafka-monitor
+[![Build](https://travis-ci.org/owler/kafka-monitor.svg?branch=master)](https://travis-ci.org/owler/kafka-monitor#)
 
-You can use the [editor on GitHub](https://github.com/owler/kafka-monitor/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+<em>Kafka monitor is a web UI for viewing Kafka topics and messages.</em> 
+<img src="https://user-images.githubusercontent.com/2174326/97114531-14b96580-1702-11eb-9360-01303a1eee21.PNG"></img>
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+# Features
+* **View topics** — partitions with start and end offsets
+* **Browse messages** — UTF8 or custom format
+* **Download messages** - raw bytes, UTF8 or custom format 
+* **Plugins** - supports custom plugins written in Java or Scala to view/download messages
 
-### Markdown
+# Requirements
+* Java 8 or newer
+* Kafka (version 0.10.0 or newer)
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+# Build
+sbt pack
 
-```markdown
-Syntax highlighted code block
+sbt "-Denv=sit" pack
 
-# Header 1
-## Header 2
-### Header 3
+# Run
+./kmon.sh start
 
-- Bulleted
-- List
+http://localhost:8081/kmon
 
-1. Numbered
-2. List
 
-**Bold** and _Italic_ and `Code` text
+# Plugins
+Implement your custom Decoder and put jar with single class into plugins folder.
+Any extra lib  place into lib/ext folder.
+decode(bytes: Array[Byte], limit: Int) method may return truncated bytes (for big message) if you specify limit,
+It's expected that DecodedMessage.size property is a size of message before truncate.
+You may put approximate size (it will be used only for information)
+```scala
+package event.ext
 
-[Link](url) and ![Image](src)
+case class DecodedMessage(bytes: Array[Byte], size: Long)
+
+trait Decoder {
+  def getName(): String
+  def decode(bytes: Array[Byte]): DecodedMessage
+  def decode(bytes: Array[Byte], limit: Int): DecodedMessage
+}
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/owler/kafka-monitor/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+## Securing the Kafka monitor UI
+Kafka monitor UI implements an Basic Auth authentication mechanism to restrict user access.
+Use 
+```scala
+com.eclipse.Util.Password.obfuscate("your password")
+``` 
+to obfuscate password and then add it into myRealm.properties
