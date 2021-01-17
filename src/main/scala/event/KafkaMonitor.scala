@@ -114,6 +114,7 @@ object KafkaMonitor {
     val staticHandler = new org.eclipse.jetty.server.handler.ResourceHandler()
     staticHandler.setBaseResource(Resource.newResource("../web"))
     staticHandler.setWelcomeFiles(Array("index.html"))
+    staticHandler.setDirectoriesListed(false)
     registry.put("staticHandler", staticHandler)
     camel.setRegistry(registry)
 
