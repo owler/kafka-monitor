@@ -2,7 +2,7 @@
 [![Build](https://travis-ci.org/owler/kafka-monitor.svg?branch=master)](https://travis-ci.org/owler/kafka-monitor#)
 
 <em>Kafka monitor is a web UI for viewing Kafka topics and messages.</em> 
-<img src="https://user-images.githubusercontent.com/2174326/97114531-14b96580-1702-11eb-9360-01303a1eee21.PNG"></img>
+<img src="https://user-images.githubusercontent.com/2174326/97114531-14b96580-1702-11eb-9360-01303a1eee21.PNG"/>
 
 # Features
 * **View topics** — partitions with start and end offsets
