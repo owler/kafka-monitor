@@ -6,18 +6,17 @@ import akka.camel.{CamelExtension, _}
 import akka.routing.FromConfig
 import event.ext.{PluginManager, Utf8Decoder}
 import event.message.{ListMsgTypes, ListTopics, Message, MessageB, MessageT, Messages, TopicDetails}
-import event.processor.StaticContentProcessor
 import event.security.{KSecurityHandler, WebSSOHandler}
 import event.utils.CharmConfigObject
 import org.apache.camel.Exchange
 import org.apache.camel.builder.RouteBuilder
 import org.apache.camel.impl.SimpleRegistry
 import org.apache.camel.model.rest.RestBindingMode
+import org.eclipse.jetty.util.resource.Resource
 
 
 object KafkaMonitor {
   private val conf = CharmConfigObject
-  private val staticProcessor = new StaticContentProcessor(conf.getConfig)
   //private val redirectProcessor = new RedirectProcessor()
 
   class CustomRouteBuilder(system: ActorSystem, monitor: ActorRef) extends RouteBuilder {
@@ -44,7 +43,8 @@ object KafkaMonitor {
         .get("/{id}/partition/{partition}/offset/{offset}/msgtype/{msgtype}/download").produces("application/octet-stream").to("direct:downloadMessageForType")
       // bridge unfortunately creates bottleneck  and all threads have to wait until one process requests
       //from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/topic/?matchOnUriPrefix=true").to("http://localhost:8877/topic?bridgeEndpoint=true")
-      from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + contextPath + "?matchOnUriPrefix=true&handlers=authHandler").process(staticProcessor)
+      from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + contextPath + "?matchOnUriPrefix=true&handlers=authHandler,staticHandler")
+      .to("log:com.company.camel.sample?level=TRACE&showAll=true&multiline=true")
 
 //      from("seda:input?limitConcurrentConsumers=false&concurrentConsumers=250").to("http://localhost:8877/topic?bridgeEndpoint=true")
 
@@ -111,9 +111,10 @@ object KafkaMonitor {
     val registry = new SimpleRegistry()
     registry.put("authHandler", new KSecurityHandler(conf.getConfig.getBoolean("security.enabled")))
     //registry.put("authHandler", new WebSSOHandler(conf.getConfig.getBoolean("security.enabled")))
-/*    val r = new org.eclipse.jetty.server.handler.ResourceHandler()
-    r.setResourceBase("../web")
-    registry.put("authHandler", r)*/
+    val staticHandler = new org.eclipse.jetty.server.handler.ResourceHandler()
+    staticHandler.setBaseResource(Resource.newResource("../web"))
+    staticHandler.setWelcomeFiles(Array("index.html"))
+    registry.put("staticHandler", staticHandler)
     camel.setRegistry(registry)
 
     camel.addRoutes(new CustomRouteBuilder(system, monitor))
