@@ -74,11 +74,11 @@ pack := {
             }
             IO.copyDirectory(file(".") / "src/bin", dist / "bin")
             IO.copyDirectory(file(".") / "src/main/resources" / env, dist / "conf")
-            IO.copyDirectory(file(".") / "src/web/", dist / "web")
+            IO.copyDirectory(file(".") / "src/web/", dist / "web/kmon")
             IO.copyDirectory(file(".") / "src/plugins/", dist / "plugins")
             IO.createDirectory(dist / "lib/ext")
             IO.createDirectory(dist / "logs")
             IO.copyFile(jar, dist / "lib" / jar.getName)
-            processTemplate(dist / "web" / "index.html", Map("{env}" -> env.toUpperCase()))
+            processTemplate(dist / "web/kmon" / "index.html", Map("{env}" -> env.toUpperCase()))
     }
 }
