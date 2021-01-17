@@ -19,6 +19,12 @@ sbt pack
 
 sbt "-Denv=sit" pack
 
+# Run
+./kmon.sh start
+
+http://localhost:8081/kmon
+
+
 # Plugins
 Implement your custom Decoder and put jar with single class into plugins folder.
 Any extra lib  place into lib/ext folder.
