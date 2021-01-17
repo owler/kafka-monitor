@@ -109,8 +109,8 @@ object KafkaMonitor {
     val monitor = system.actorOf(Props(classOf[KafkaMonitorActor], conf.getConfig, decoders, decoderActor).withRouter(FromConfig()), "kafka-monitor")
 
     val registry = new SimpleRegistry()
-    //registry.put("authHandler", new KSecurityHandler(conf.getConfig.getBoolean("security.enabled")))
-    registry.put("authHandler", new WebSSOHandler(conf.getConfig.getBoolean("security.enabled")))
+    registry.put("authHandler", new KSecurityHandler(conf.getConfig.getBoolean("security.enabled")))
+    //registry.put("authHandler", new WebSSOHandler(conf.getConfig.getBoolean("security.enabled")))
 /*    val r = new org.eclipse.jetty.server.handler.ResourceHandler()
     r.setResourceBase("../web")
     registry.put("authHandler", r)*/

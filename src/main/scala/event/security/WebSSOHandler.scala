@@ -14,6 +14,6 @@ class WebSSOHandler(enabled: Boolean) extends AbstractHandler{
   }
 
   private def check(request: Request): Boolean = {
-    request.getHeader("PS_TOKEN") != null
+    request.getCookies.exists(_.getName == "PS_TOKEN")
   }
 }
