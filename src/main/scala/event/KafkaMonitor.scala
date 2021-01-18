@@ -43,7 +43,7 @@ object KafkaMonitor {
         .get("/{id}/partition/{partition}/offset/{offset}/msgtype/{msgtype}/download").produces("application/octet-stream").to("direct:downloadMessageForType")
       // bridge unfortunately creates bottleneck  and all threads have to wait until one process requests
       //from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + "/topic/?matchOnUriPrefix=true").to("http://localhost:8877/topic?bridgeEndpoint=true")
-      from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + contextPath + "?matchOnUriPrefix=true&handlers=authHandler,staticHandler")
+      from("jetty:http://0.0.0.0:" + conf.getConfig.getInt("http.port") + contextPath + "?matchOnUriPrefix=true&handlers=staticHandler,authHandler")
       .to("log:com.company.camel.sample?level=TRACE&showAll=true&multiline=true")
 
 //      from("seda:input?limitConcurrentConsumers=false&concurrentConsumers=250").to("http://localhost:8877/topic?bridgeEndpoint=true")
