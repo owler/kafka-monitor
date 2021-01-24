@@ -1,10 +1,5 @@
 package event
 
-import java.time.Duration
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicLong
-import java.util.{Date, Properties}
-
 import com.typesafe.scalalogging.Logger
 import event.json.{KMessage, Partition, Topic}
 import event.utils.CharmConfigObject
@@ -13,9 +8,14 @@ import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.slf4j.LoggerFactory
 
+import java.time.Duration
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
+import java.util.{Date, Properties}
 import scala.annotation.tailrec
-import scala.jdk.CollectionConverters._
 import scala.collection.{IterableOnce, mutable}
+import scala.jdk.CollectionConverters._
+import scala.util.Using
 
 
 case class TopicMetaData(topic: String, metadata: mutable.SortedMap[Int, (Long, Long)])
@@ -26,6 +26,7 @@ object Kafka {
   private val log = Logger(LoggerFactory.getLogger(this.getClass))
   private val conf = CharmConfigObject
   private val cacheTime = conf.getConfig.getLong("cache.ttl")
+  private val verbose = conf.getConfig.getBoolean("verbose")
   private var repo = new ConcurrentHashMap[String, TopicMetaData]().asScala
   private val repoRefreshTimestamp = new AtomicLong(0)
   private val messageCache = LRUCache[MessagePosition, KMessage[Array[Byte]]](conf.getConfig.getInt("cache.size"))
@@ -41,28 +42,29 @@ object Kafka {
   private def refreshRepo(): Unit = {
     repo.synchronized {
       if (rotten()) {
-          val consumer = createConsumer()
+        Using.resource(createConsumer()) { consumer =>
           log.debug("Start refreshing Repo")
           val list = consumer.listTopics().asScala
           log.debug(s"Found ${list.size} topics")
 
           val tps: List[TopicPartition] = list.flatMap(t => t._2.asScala.map(partitionInfo => new TopicPartition(t._1, partitionInfo.partition()))).toList
-          repo.clear()
-          repo ++= getTopicInfo(tps, consumer)
-
-          /*
-                    val tmpRepo = new ConcurrentHashMap[String, TopicMetaData]().asScala
-                    list.foreach(t => {
-                      val topicPartitions = t._2.asScala.map(partitionInfo => new TopicPartition(t._1, partitionInfo.partition())).toList
-                      log.debug(s"Getting partition info for ${t._1}")
-                      tmpRepo ++= getTopicInfo(topicPartitions, consumer)
-                    })
-                    repo = tmpRepo
-          */
-
+          if (!verbose) {
+            val tmpRepo = getTopicInfo(tps, consumer)
+            repo.clear()
+            repo ++= tmpRepo
+          } else {
+            val tmpRepo = new ConcurrentHashMap[String, TopicMetaData]().asScala
+            list.foreach(t => {
+              val topicPartitions = t._2.asScala.map(partitionInfo => new TopicPartition(t._1, partitionInfo.partition())).toList
+              log.debug(s"Getting partition info for ${t._1}")
+              tmpRepo ++= getTopicInfo(topicPartitions, consumer)
+            })
+            repo.clear()
+            repo ++= tmpRepo
+          }
           repoRefreshTimestamp.set(System.currentTimeMillis())
           log.debug("Repo refreshed")
-          consumer.close()
+        }
       }
     }
   }
@@ -75,7 +77,7 @@ object Kafka {
     if (rotten()) {
       refreshRepo()
     }
-    repo.values.toList.sortBy(t => t.topic).map(t => Topic(t.topic, t.metadata.exists( e => e._2._1 < e._2._2)))
+    repo.values.toList.sortBy(t => t.topic).map(t => Topic(t.topic, t.metadata.exists(e => e._2._1 < e._2._2)))
   }
 
   def getTopic(topicName: String): List[Partition] = {
@@ -135,7 +137,7 @@ object Kafka {
     } else {
       val records = consumer.poll(Duration.ofSeconds(10))
       val resp = records.iterator().asScala.take(count).map(m => KMessage(m.offset(), new Date(m.timestamp()), m.value(), m.value().length, null, 0)).toList
-      if(resp.isEmpty) {
+      if (resp.isEmpty) {
         aggr
       } else {
         poll(consumer, count - resp.length, resp ::: aggr)
