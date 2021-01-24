@@ -115,15 +115,15 @@ object Kafka {
       repo.get(topic).flatMap(
         _.metadata.get(partition).flatMap(offsets => if (offsets._1 != offsets._2 && offset >= offsets._1 && offset < offsets._2) Some((offset, offsets._2)) else None)
       ) map { verifiedOffsets =>
-        val consumer = createConsumer()
-        val tp = new TopicPartition(topic, partition)
-        consumer.assign(List(tp).asJava)
-        consumer.seek(tp, verifiedOffsets._1)
-        val recount = Math.min(count, verifiedOffsets._2 - verifiedOffsets._1).toInt
-        val resp = poll(consumer, recount, List())
-        resp.foreach(m => messageCache += MessagePosition(topic, partition, m.offset) -> m)
-        consumer.close()
-        resp
+        Using.resource(createConsumer()) { consumer =>
+          val tp = new TopicPartition(topic, partition)
+          consumer.assign(List(tp).asJava)
+          consumer.seek(tp, verifiedOffsets._1)
+          val recount = Math.min(count, verifiedOffsets._2 - verifiedOffsets._1).toInt
+          val resp = poll(consumer, recount, List())
+          resp.foreach(m => messageCache += MessagePosition(topic, partition, m.offset) -> m)
+          resp
+        }
       }
     } catch {
       case e: Throwable => log.error("Unable get message: ", e); None
