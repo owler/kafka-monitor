@@ -61,10 +61,9 @@ object Kafka {
               log.debug(s"Getting partition info for ${t._1}")
               Try(getTopicInfo(topicPartitions, consumer, Duration.ofSeconds(7))) match {
                 case Success(value) => tmpRepo ++= value
-                case Failure(e) => {
+                case Failure(e) =>
                   log.warn(s"Ignoring topic ${t._1}", e)
                   ignoredTopics += t._1
-                }
               }
             })
             if(ignoredTopics.nonEmpty) log.info(s"Ignoring topics: ${ignoredTopics.mkString(", ")}")
