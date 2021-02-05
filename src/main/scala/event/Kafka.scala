@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import java.util.{Date, Properties}
 import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
 import scala.collection.{IterableOnce, mutable}
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try, Using}
@@ -55,7 +56,7 @@ object Kafka {
             repo ++= tmpRepo
           } else {
             val tmpRepo = new ConcurrentHashMap[String, TopicMetaData]().asScala
-            var ignoredTopics = List()
+            val ignoredTopics = ListBuffer.empty[String]
             list.foreach(t => {
               val topicPartitions = t._2.asScala.map(partitionInfo => new TopicPartition(t._1, partitionInfo.partition())).toList
               log.debug(s"Getting partition info for ${t._1}")
