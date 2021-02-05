@@ -55,14 +55,19 @@ object Kafka {
             repo ++= tmpRepo
           } else {
             val tmpRepo = new ConcurrentHashMap[String, TopicMetaData]().asScala
+            var ignoredTopics = List()
             list.foreach(t => {
               val topicPartitions = t._2.asScala.map(partitionInfo => new TopicPartition(t._1, partitionInfo.partition())).toList
               log.debug(s"Getting partition info for ${t._1}")
               Try(getTopicInfo(topicPartitions, consumer, Duration.ofSeconds(7))) match {
                 case Success(value) => tmpRepo ++= value
-                case Failure(e) => log.warn(s"Ignoring topic ${t._1}", e)
+                case Failure(e) => {
+                  log.warn(s"Ignoring topic ${t._1}", e)
+                  ignoredTopics += t._1
+                }
               }
             })
+            if(ignoredTopics.nonEmpty) log.info(s"Ignoring topics: ${ignoredTopics.mkString(", ")}")
             repo.clear()
             repo ++= tmpRepo
           }
