@@ -15,7 +15,7 @@ import java.util.{Date, Properties}
 import scala.annotation.tailrec
 import scala.collection.{IterableOnce, mutable}
 import scala.jdk.CollectionConverters._
-import scala.util.Using
+import scala.util.{Failure, Success, Try, Using}
 
 
 case class TopicMetaData(topic: String, metadata: mutable.SortedMap[Int, (Long, Long)])
@@ -27,6 +27,7 @@ object Kafka {
   private val conf = CharmConfigObject
   private val cacheTime = conf.getConfig.getLong("cache.ttl")
   private val verbose = conf.getConfig.getBoolean("verbose")
+  private val ignore = conf.getString("ignore").split(",").map(_.trim)
   private var repo = new ConcurrentHashMap[String, TopicMetaData]().asScala
   private val repoRefreshTimestamp = new AtomicLong(0)
   private val messageCache = LRUCache[MessagePosition, KMessage[Array[Byte]]](conf.getConfig.getInt("cache.size"))
@@ -44,12 +45,12 @@ object Kafka {
       if (rotten()) {
         Using.resource(createConsumer()) { consumer =>
           log.debug("Start refreshing Repo")
-          val list = consumer.listTopics().asScala
+          val list = consumer.listTopics().asScala.filter(el => !ignore.contains(el._1))
           log.debug(s"Found ${list.size} topics")
 
           val tps: List[TopicPartition] = list.flatMap(t => t._2.asScala.map(partitionInfo => new TopicPartition(t._1, partitionInfo.partition()))).toList
           if (!verbose) {
-            val tmpRepo = getTopicInfo(tps, consumer)
+            val tmpRepo = getTopicInfo(tps, consumer, Duration.ofSeconds(60))
             repo.clear()
             repo ++= tmpRepo
           } else {
@@ -57,7 +58,10 @@ object Kafka {
             list.foreach(t => {
               val topicPartitions = t._2.asScala.map(partitionInfo => new TopicPartition(t._1, partitionInfo.partition())).toList
               log.debug(s"Getting partition info for ${t._1}")
-              tmpRepo ++= getTopicInfo(topicPartitions, consumer)
+              Try(getTopicInfo(topicPartitions, consumer, Duration.ofSeconds(7))) match {
+                case Success(value) => tmpRepo ++= value
+                case Failure(e) => log.warn(s"Ignoring topic ${t._1}", e)
+              }
             })
             repo.clear()
             repo ++= tmpRepo
@@ -90,10 +94,10 @@ object Kafka {
   }
 
 
-  private def getTopicInfo(tp: List[TopicPartition], consumer: KafkaConsumer[Array[Byte], Array[Byte]]): Map[String, TopicMetaData] = {
-    val startOffsets = consumer.beginningOffsets(tp.asJava).asScala
+  private def getTopicInfo(tp: List[TopicPartition], consumer: KafkaConsumer[Array[Byte], Array[Byte]], duration: Duration): Map[String, TopicMetaData] = {
+    val startOffsets = consumer.beginningOffsets(tp.asJava, duration).asScala
     log.debug(s"Extracted ${startOffsets.size} start offsets")
-    val endOffsets = consumer.endOffsets(tp.asJava).asScala
+    val endOffsets = consumer.endOffsets(tp.asJava, duration).asScala
     log.debug(s"Extracted ${endOffsets.size} end offsets")
     startOffsets.groupBy(_._1.topic()).map(x => x._1 -> TopicMetaData(x._1, x._2.map(y => y._1.partition() -> (y._2.toLong, endOffsets(y._1).toLong)).toSortedMap))
   }

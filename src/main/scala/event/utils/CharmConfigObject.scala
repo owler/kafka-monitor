@@ -15,7 +15,7 @@ object CharmConfigObject {
     cryptor.decrypt(conf.getString(key))
   }
 
-  def parse(key: String): Map[String, Any] = {
+  def parse(key: String): Map[String, AnyRef] = {
     conf.getObject(key).unwrapped().asScala.mapValuesInPlace((_, v) => v match {
       case s: String => cryptor.decrypt(s)
       case _ => v
